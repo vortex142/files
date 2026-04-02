@@ -14,6 +14,6 @@ var (
 	// ErrEmptyType is returned when the output MIME type is empty.
 	ErrEmptyType = errors.New("mime type is empty")
 
-	// ErrEmptySybtype is returned when the output MIME subtype is empty.
-	ErrEmptySybtype = errors.New("mime subtype is empty")
+	// ErrEmptySubtype is returned when the output MIME subtype is empty.
+	ErrEmptySubtype = errors.New("mime subtype is empty")
 )

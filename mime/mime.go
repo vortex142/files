@@ -3,75 +3,88 @@
 package mime
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 )
 
-// ...
-const (
-	mpegName = "mpeg"
-	wavName  = "wav"
-	mp4Name  = "mp4"
-	oggName  = "ogg"
-)
+// TODO:
+// ~ IsArchive method
+// ~ Mime param getter
 
-// audioType and videoType are the standard top-level media categories
-// defined in RFC 2045/2046.
 const (
-	audioType = "audio"
-	videoType = "video"
+	audioType       = "audio"       // ...
+	videoType       = "video"       // ...
+	imageType       = "image"       // ...
+	textType        = "text"        // ...
+	applicationType = "application" // ...
+	fontType        = "font"        // ...
+	modelType       = "model"       // ...
 )
 
 // Mime represents a full standard media type string (e.g., "audio/mpeg").
 type Mime string
 
-// Subtype represents the second part of a MIME type (e.g., "x-wav" in "audio/x-wav").
-// Identifying the subtype is key to determining the correct file extension.
-type Subtype string
+// ...
+func (m Mime) Validate() error {
+	var errs = make([]error, 0, 2)
 
-// Name maps the specific MIME subtype to a canonical format name.
-// Unlike a simple getter, it returns an error for unrecognized subtypes,
-// allowing the caller to decide whether to use a fallback or reject the file.
-func (s Subtype) Name() (string, error) {
-	// Level 1: Check for WAV-family formats.
-	if _, ok := wavSubtypes[s]; ok {
-		return wavName, nil
+	if m == "" {
+		errs = append(errs, ErrEmptyMime)
 	}
 
-	// Level 2: Check for MPEG-family formats.
-	if _, ok := mpegSubtypes[s]; ok {
-		return mpegName, nil
+	// ...
+	t, sub, found := strings.Cut(string(m), "/")
+
+	// ...
+	if !found {
+		errs = append(errs, ErrInvalidMime)
 	}
 
-	// Level 3: check from OGG-family formats.
-	if _, ok := oggSubtypes[s]; ok {
-		return oggName, nil
+	// ...
+	if m != "" && found {
+		if t == "" {
+			errs = append(errs, ErrEmptyType)
+		}
+
+		sub, _, _ = strings.Cut(sub, ";")
+		if sub == "" {
+			errs = append(errs, ErrEmptySubtype)
+		}
 	}
 
-	// Level 4: check from MP4-family formats.
-	if _, ok := mp4Subtypes[s]; ok {
-		return mp4Name, nil
+	if len(errs) == 0 {
+		return nil
+	}
+	return fmt.Errorf("failed to validate: %w", errors.Join(errs...))
+}
+
+// Subtype extracts the specific format identifier from the MIME.
+func (m Mime) Subtype() (Subtype, error) {
+	// ...
+	if err := m.Validate(); err != nil {
+		return "", err
 	}
 
-	// Instead of returning a "magic string" like "unknown", we return
-	// a formatted error. This makes the system's limitations
-	// discoverable and easier to debug.
-	return "", fmt.Errorf("unknown subtype: %s", s)
+	parts := strings.Split(string(m), "/")
+	s := parts[1]
+	s, _, _ = strings.Cut(s, ";")
+
+	if s == "" {
+		return "", ErrEmptySubtype
+	}
+
+	return Subtype(s), nil
 }
 
 // Type extracts the primary media category (e.g., "audio", "video") from the MIME.
 func (m Mime) Type() (string, error) {
-	// Early exit for empty strings to avoid unnecessary processing
-	// and provide a clear, actionable error.
-	if m == "" {
-		return "", ErrEmptyMime
+	// ...
+	if err := m.Validate(); err != nil {
+		return "", err
 	}
 
 	parts := strings.Split(string(m), "/")
-	if len(parts) != 2 {
-		return "", ErrInvalidMime
-	}
-
 	tp := parts[0]
 	if tp == "" {
 		return "", ErrEmptyType
@@ -80,28 +93,9 @@ func (m Mime) Type() (string, error) {
 	return tp, nil
 }
 
-// Subtype extracts the specific format identifier from the MIME.
-func (m Mime) Subtype() (Subtype, error) {
-	// Early exit for empty strings to avoid unnecessary processing
-	// and provide a clear, actionable error.
-	if m == "" {
-		return "", ErrEmptyMime
-	}
-
-	parts := strings.Split(string(m), "/")
-	if len(parts) != 2 {
-		return "", ErrInvalidMime
-	}
-
-	s := parts[1]
-	s, _, _ = strings.Cut(s, ";")
-
-	if s == "" {
-		return "", ErrEmptySybtype
-	}
-
-	return Subtype(s), nil
-}
+// ...
+// func (m Mime) FileType(files.Type, error) {
+// }
 
 // Parts decomposes a Mime string into its primary type and subtype components.
 // It enforces the RFC-standard "type/subtype" format, providing the foundation
@@ -130,7 +124,7 @@ func (m Mime) Parts() (string, Subtype, error) {
 	s, _, _ = strings.Cut(s, ";")
 
 	if s == "" {
-		return "", "", ErrEmptySybtype
+		return "", "", ErrEmptySubtype
 	}
 
 	// Casting the second part to the Subtype custom type enables
@@ -138,78 +132,32 @@ func (m Mime) Parts() (string, Subtype, error) {
 	return tp, Subtype(s), nil
 }
 
-// IsAudio verifies if the MIME type belongs to the "audio" category.
-// It returns an error if the MIME structure is malformed, ensuring
-// that we distinguish between non-audio files and invalid data.
-func (m Mime) IsAudio() (bool, error) {
-	t, err := m.Type()
-	if err != nil {
-		return false, err
-	}
-
-	return t == audioType, nil
-}
-
-// IsVideo verifies if the MIME type belongs to the "video" category.
-// It returns an error if the MIME structure is malformed, ensuring
-// that we distinguish between non-video files and invalid data.
-func (m Mime) IsVideo() (bool, error) {
-	t, err := m.Type()
-	if err != nil {
-		return false, err
-	}
-
-	return t == videoType, nil
-}
-
-// MimeIsWav checks if the provided MIME string belongs to the WAV audio family.
-// It ensures the media type is 'audio' and the subtype is in the WAV whitelist.
-func MimeIsWav(mime Mime) bool {
-	if ok, err := mime.IsAudio(); err != nil || !ok {
-		return false
-	}
-
-	s, err := mime.Subtype()
+// ...
+func (m Mime) is(t string) bool {
+	tp, err := m.Type()
 	if err != nil {
 		return false
 	}
-
-	// Delegate the actual format check to IsWav for consistent logic reuse.
-	return IsWav(Subtype(s))
+	return t == tp
 }
 
-// IsWav checks if the subtype belongs to the WAV family.
-func IsWav(s Subtype) bool {
-	if s == "" {
-		return false
-	}
+// ...
+func (m Mime) IsAudio() bool { return m.is(audioType) }
 
-	_, ok := wavSubtypes[s]
-	return ok
-}
+// ...
+func (m Mime) IsVideo() bool { return m.is(videoType) }
 
-// MimeIsMpeg checks if the provided MIME string belongs to the MPEG audio family.
-// It ensures the media type is 'audio' and the subtype is in the MPEG whitelist.
-func MimeIsMpeg(mime Mime) bool {
-	if ok, err := mime.IsAudio(); err != nil || !ok {
-		return false
-	}
+// ...
+func (m Mime) IsImage() bool { return m.is(imageType) }
 
-	s, err := mime.Subtype()
-	if err != nil {
-		return false
-	}
+// ...
+func (m Mime) IsApplication() bool { return m.is(applicationType) }
 
-	// Delegate the actual format check to IsMpeg for consistent logic reuse.
-	return IsMpeg(Subtype(s))
-}
+// ...
+func (m Mime) IsText() bool { return m.is(textType) }
 
-// IsMpeg checks if the subtype belongs to the MPEG family.
-func IsMpeg(s Subtype) bool {
-	if s == "" {
-		return false
-	}
+// ...
+func (m Mime) IsFont() bool { return m.is(fontType) }
 
-	_, ok := mpegSubtypes[s]
-	return ok
-}
+// ...
+func (m Mime) IsModel() bool { return m.is(modelType) }
