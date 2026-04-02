@@ -10,7 +10,7 @@ import (
 
 // TODO:
 // ~ IsArchive method
-// ~ Mime param getter
+// ~ Subtype param getter (after ';')
 
 const (
 	audioType       = "audio"       // ...
@@ -27,10 +27,9 @@ type Mime string
 
 // ...
 func (m Mime) Validate() error {
-	var errs = make([]error, 0, 2)
-
+	// ...
 	if m == "" {
-		errs = append(errs, ErrEmptyMime)
+		return ErrEmptyMime
 	}
 
 	// ...
@@ -38,11 +37,13 @@ func (m Mime) Validate() error {
 
 	// ...
 	if !found {
-		errs = append(errs, ErrInvalidMime)
+		return ErrInvalidMime
 	}
 
+	var errs = make([]error, 0, 2)
+
 	// ...
-	if m != "" && found {
+	if found {
 		if t == "" {
 			errs = append(errs, ErrEmptyType)
 		}
@@ -61,36 +62,14 @@ func (m Mime) Validate() error {
 
 // Subtype extracts the specific format identifier from the MIME.
 func (m Mime) Subtype() (Subtype, error) {
-	// ...
-	if err := m.Validate(); err != nil {
-		return "", err
-	}
-
-	parts := strings.Split(string(m), "/")
-	s := parts[1]
-	s, _, _ = strings.Cut(s, ";")
-
-	if s == "" {
-		return "", ErrEmptySubtype
-	}
-
-	return Subtype(s), nil
+	_, sub, err := m.Parts()
+	return sub, err
 }
 
 // Type extracts the primary media category (e.g., "audio", "video") from the MIME.
 func (m Mime) Type() (string, error) {
-	// ...
-	if err := m.Validate(); err != nil {
-		return "", err
-	}
-
-	parts := strings.Split(string(m), "/")
-	tp := parts[0]
-	if tp == "" {
-		return "", ErrEmptyType
-	}
-
-	return tp, nil
+	t, _, err := m.Parts()
+	return t, err
 }
 
 // ...
@@ -100,36 +79,21 @@ func (m Mime) Type() (string, error) {
 // Parts decomposes a Mime string into its primary type and subtype components.
 // It enforces the RFC-standard "type/subtype" format, providing the foundation
 // for media categorization and format identification.
-func (m Mime) Parts() (string, Subtype, error) {
-	// Early exit for empty strings to avoid unnecessary processing
-	// and provide a clear, actionable error.
-	if m == "" {
-		return "", "", ErrEmptyMime
+func (m Mime) Parts() (tp string, sub Subtype, err error) {
+	// ...
+	if err := m.Validate(); err != nil {
+		return "", "", err
 	}
 
-	// We split the string exactly once to maintain high performance.
-	// The length check ensures that we have both a category (e.g., "audio")
-	// and a specific format (e.g., "mpeg") before proceeding.
-	parts := strings.Split(string(m), "/")
-	if len(parts) != 2 {
-		return "", "", ErrInvalidMime
-	}
+	// ...
+	t, s, _ := strings.Cut(string(m), "/")
 
-	tp := parts[0]
-	if tp == "" {
-		return "", "", ErrEmptyType
-	}
-
-	s := parts[1]
+	// ...
 	s, _, _ = strings.Cut(s, ";")
 
-	if s == "" {
-		return "", "", ErrEmptySubtype
-	}
-
-	// Casting the second part to the Subtype custom type enables
-	// the use of specialized methods like Subtype.Name().
-	return tp, Subtype(s), nil
+	return t, Subtype(s), nil
+	// // the use of specialized methods like Subtype.Name().
+	// return tp, Subtype(s), nil
 }
 
 // ...
