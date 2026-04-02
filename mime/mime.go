@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"vortex.com/files"
 )
 
 // TODO:
@@ -21,6 +23,14 @@ const (
 	fontType        = "font"        // ...
 	modelType       = "model"       // ...
 )
+
+// ...
+var fileTypes = map[string]files.Type{
+	audioType: files.Audio,
+	videoType: files.Video,
+	imageType: files.Image,
+	fontType:  files.Font,
+}
 
 // Mime represents a full standard media type string (e.g., "audio/mpeg").
 type Mime string
@@ -73,8 +83,19 @@ func (m Mime) Type() (string, error) {
 }
 
 // ...
-// func (m Mime) FileType(files.Type, error) {
-// }
+func (m Mime) FileType() (files.Type, error) {
+	mt, err := m.Type()
+	if err != nil {
+		return files.Unknown, err
+	}
+
+	t, found := fileTypes[mt]
+	if !found {
+		return files.Unknown, nil
+	}
+
+	return t, nil
+}
 
 // Parts decomposes a Mime string into its primary type and subtype components.
 // It enforces the RFC-standard "type/subtype" format, providing the foundation
