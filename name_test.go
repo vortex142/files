@@ -10,13 +10,10 @@ import (
 
 var errResult error
 
-// regexp для валидации. Используется в бенчмарках
 var oldPattern = regexp.MustCompile(`^[ \p{L}\p{N}()._\-]+$`)
 
 var (
-	// Паттерн для поиска переносов
-	newlineRegex = regexp.MustCompile(`[\n\r]`)
-	// Паттерн для всего, что НЕ входит в белый список
+	newlineRegex   = regexp.MustCompile(`[\n\r]`)
 	forbiddenRegex = regexp.MustCompile(`[^a-zA-Zа-яА-Я0-9. ()_\-]`)
 )
 
@@ -49,7 +46,7 @@ func TestAllowed(t *testing.T) {
 		{
 			name:        "not allowed control chars",
 			wantAllowed: false,
-			rs:          []rune{'\n', '\r', '\t'}, // Важно: в Validate они запрещены
+			rs:          []rune{'\n', '\r', '\t'},
 		},
 		{
 			name:        "not allowed char",
@@ -182,7 +179,7 @@ func TestName_Prepare(t *testing.T) {
 			name:    "replace newlines and clean symbols",
 			wantErr: false,
 			input:   "Cool\nVideo! @🚀",
-			want:    "Cool_Video ", // \n -> _, ! и эмодзи удалены, пробел остался
+			want:    "Cool_Video ",
 		},
 		{
 			name:    "empty input",
@@ -209,7 +206,7 @@ func TestName_Prepare(t *testing.T) {
 			name:    "mixed content with brackets",
 			wantErr: false,
 			input:   "Movie (2024).mp4\r\n[4K]",
-			want:    "Movie (2024).mp4__4K", // \r\n превратился в два _
+			want:    "Movie (2024).mp4__4K",
 		},
 		{
 			name:    "replace newlines and clean symbols",
@@ -243,26 +240,24 @@ func TestReservedWinNames(t *testing.T) {
 		input string
 		want  bool
 	}{
-		// Позитивные кейсы (должны быть зарезервированы)
 		{"CON", true},
-		{"con", true}, // Проверка регистронезависимости
+		{"con", true},
 		{"PRN", true},
 		{"aux", true},
 		{"Nul", true},
 		{"COM1", true},
 		{"LPT9", true},
 
-		// Негативные кейсы (допустимые имена)
-		{"", false},       // Пустая строка
-		{"C", false},      // Слишком короткая
-		{"CO", false},     // Почти попал
-		{"CONN", false},   // Слишком длинная (но похожа)
-		{"CON1", false},   // Нет такого устройства
-		{"BANANA", false}, // Обычное слово
-		{"COM10", false},  // Windows резервирует только COM1-9
-		{"LPT0", false},   // Обычно LPT начинается с 1
-		{"_CON", false},   // С префиксом уже можно
-		{".AUX", false},   // С точкой в начале можно
+		{"", false},
+		{"C", false},
+		{"CO", false},
+		{"CONN", false},
+		{"CON1", false},
+		{"BANANA", false},
+		{"COM10", false},
+		{"LPT0", false},
+		{"_CON", false},
+		{".AUX", false},
 	}
 
 	for _, tt := range tests {
@@ -306,8 +301,8 @@ func BenchmarkName_Validate(b *testing.B) {
 
 	for _, bb := range benchmarks {
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs() // Важно: смотрим, сколько памяти "ест" каждая версия
-			b.ResetTimer()   // Сбрасываем время, затраченное на подготовку цикла
+			b.ReportAllocs()
+			b.ResetTimer()
 
 			for b.Loop() {
 				errResult = bb.n.Validate()
@@ -348,8 +343,8 @@ func BenchmarkValidate_Regexp(b *testing.B) {
 
 	for _, bb := range benchmarks {
 		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs() // Важно: смотрим, сколько памяти "ест" каждая версия
-			b.ResetTimer()   // Сбрасываем время, затраченное на подготовку цикла
+			b.ReportAllocs()
+			b.ResetTimer()
 
 			for b.Loop() {
 				benchmarkRegexp(string(bb.n))
@@ -379,7 +374,6 @@ func BenchmarkPrepare_Builder(b *testing.B) {
 	}
 }
 
-// Валидация по regexp
 func benchmarkRegexp(s string) bool {
 	if s == "" {
 		return false
@@ -397,17 +391,14 @@ func prepareRegexp(s string, maxLen int) string {
 		return string("default name")
 	}
 
-	// 1. Обрезаем (по рунам, чтобы не сломать UTF-8)
 	runes := []rune(s)
 	if len(runes) > maxLen {
 		runes = runes[:maxLen]
 	}
 	s = string(runes)
 
-	// 2. Заменяем \n\r на _
 	s = newlineRegex.ReplaceAllString(s, "_")
 
-	// 3. Вырезаем запрещенку на ""
 	s = forbiddenRegex.ReplaceAllString(s, "")
 
 	if len(s) == 0 {
