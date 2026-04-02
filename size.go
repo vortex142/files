@@ -13,7 +13,7 @@ import (
 )
 
 // TODO:
-// ~ Избавиться от regexp
+// ~ remove regexp in parse
 
 var (
 	ErrNegativeSize = errors.New("size cannot be negative")             // ErrNegativeSize indicates that the provided file size value is below zero.

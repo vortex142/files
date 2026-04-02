@@ -12,7 +12,7 @@ import (
 
 // forbiddenWindowsNames contains legacy MS-DOS device names that are reserved
 // by the Windows API. Blocking these is essential for cross-platform stability,
-// ensuring media assets can be processed on any worker node without OS errors.
+// ensuring files can be processed on any worker node without OS errors.
 var forbiddenWindowsNames = map[string]struct{}{
 	"CON": {}, "PRN": {}, "AUX": {}, "NUL": {},
 	"COM1": {}, "COM2": {}, "COM3": {}, "COM4": {}, "COM5": {}, "COM6": {}, "COM7": {}, "COM8": {}, "COM9": {},
