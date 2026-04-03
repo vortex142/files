@@ -37,9 +37,6 @@ var fileTypes = map[string]files.Type{
 // Mime represents a full standard media type string (e.g., "audio/mpeg").
 type Mime string
 
-// TODO:
-// ~ Проверять размер Mime
-
 // Validate ensures the Mime string adheres to the RFC standards (type/subtype).
 // It checks for empty values and correctly formatted delimiters, ignoring optional parameters.
 // It returns a joined error if either the primary type or the subtype is missing or invalid.
@@ -93,8 +90,8 @@ func (m Mime) Type() (string, error) {
 }
 
 // FileType resolves the Mime string into a high-level internal file category.
-// It returns files.Unknown and an error if the MIME format is invalid,
-// or files.Unknown without an error if the type is valid but not supported by our presets.
+// It returns [files.Unknown] and an error if the MIME format is invalid,
+// or [files.Unknown] without an error if the type is valid but not supported by our presets.
 func (m Mime) FileType() (files.Type, error) {
 	mt, err := m.Type()
 	if err != nil {

@@ -27,7 +27,7 @@ const (
 
 // Validate verifies that the type identifier corresponds to a known file classification.
 // It uses the receiver t to perform a range check against the defined constants.
-// It returns nil if valid, otherwise ErrInvalidType for unrecognized values.
+// It returns nil if valid, otherwise [ErrInvalidType] for unrecognized values.
 func (t Type) Validate() error {
 	if t > Unknown {
 		return fmt.Errorf("Validate: %w (received: %d)", ErrInvalidType, t)

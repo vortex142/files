@@ -4,6 +4,7 @@ package mime
 
 import "errors"
 
+// Note: Написать для Go doc
 var (
 	// ErrEmptyMime is returned when the input string is empty.
 	ErrEmptyMime = errors.New("mime is required")

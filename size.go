@@ -19,7 +19,7 @@ import (
 // It is pre-compiled to mitigate the performance cost during repeated calls.
 var parsePattern = regexp.MustCompile(`^([0-9.]+)\s*([a-zA-Z]+)$`)
 
-// nameToUnit maps uppercase unit strings back to their Unit constants for fast lookup during parsing.
+// nameToUnit maps uppercase unit strings back to their [Unit] constants for fast lookup during parsing.
 var nameToUnit = map[string]Unit{
 	"B": B, "KB": Kb, "MB": Mb, "GB": Gb, "TB": Tb, "PB": Pb, "EB": Eb,
 }
@@ -87,7 +87,7 @@ func (s Size) String() string {
 }
 
 // Validate ensures the Size value resides within a logically sound physical range.
-// It returns ErrNegativeSize if the value is less than zero, otherwise nil.
+// It returns [ErrNegativeSize] if the value is less than zero, otherwise nil.
 func (s Size) Validate() error {
 	if s < 0 {
 		return ErrNegativeSize
@@ -97,7 +97,7 @@ func (s Size) Validate() error {
 
 // UnmarshalJSON implements the json.Unmarshaler interface to support flexible size definitions.
 // It allows the Size type to be initialized from either a human-readable string (e.g., "512MB") or a numeric byte value.
-// It returns an error if the data type is unsupported or if the numeric value is negative.
+// It returns [ErrNegativeSize] if the numeric value is negative, or other errors for invalid formats or data types.
 func (s *Size) UnmarshalJSON(data []byte) error {
 	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
@@ -111,8 +111,7 @@ func (s *Size) UnmarshalJSON(data []byte) error {
 	case float64:
 		// Handle raw numeric values, treating them as basic bytes.
 		if val < 0 {
-			// TODO: Define a specific error variable (e.g., ErrNegativeSize) for consistency.
-			return fmt.Errorf("size cannot be negative: %f", val)
+			return ErrNegativeSize
 		}
 
 		// Normalize the numeric input to the base Byte unit to maintain internal consistency.
@@ -158,7 +157,7 @@ func (s *Size) Parse(str string) error {
 	return nil
 }
 
-// To converts the current Size (assumed to be in bytes) into the specified target unit.
+// To converts the current Size (assumed to be in bytes) into the specified target [Unit].
 // unit defines the scale (e.g., MB, GB) to which the value should be normalized.
 // It returns the scaled Size or 0 if the current value fails validation.
 func (s Size) To(unit Unit) Size {
@@ -170,7 +169,7 @@ func (s Size) To(unit Unit) Size {
 	return s / Size(unit.Bytes())
 }
 
-// From creates a Size (in bytes) by scaling a raw value from the provided unit.
+// From creates a Size (in bytes) by scaling a raw value from the provided [Unit].
 // val represents the quantity, and unit defines its magnitude (e.g., 5, GB).
 // It returns the total byte count or 0 if the input value is invalid.
 func From(val Size, unit Unit) Size {
