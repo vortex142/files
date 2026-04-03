@@ -153,7 +153,7 @@ func (n *Name) CutExtension() {
 }
 
 // isReservedWinName identifies legacy system filenames that are prohibited
-// by the Windows API. This check is vital for cross-platform stability of the Vortex backend.
+// by the Windows API. This check is vital for cross-platform stability.
 func isReservedWinName(n Name) bool {
 	// Quick length filter to avoid expensive map lookups for strings
 	// that cannot possibly be reserved names.
