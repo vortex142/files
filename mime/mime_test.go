@@ -3,6 +3,7 @@
 package mime
 
 import (
+	"strings"
 	"testing"
 
 	"vortex.com/files"
@@ -44,6 +45,11 @@ func TestMime_Validate(t *testing.T) {
 			name:    "empty subtype",
 			wantErr: true,
 			mime:    "audio/",
+		},
+		{
+			name:    "too long mime",
+			wantErr: true,
+			mime:    Mime(strings.Repeat("audio/mpeg", 500)),
 		},
 	}
 
@@ -226,6 +232,11 @@ func TestMime_Parts(t *testing.T) {
 		{
 			name:    "empty mime",
 			wantErr: true,
+		},
+		{
+			name:    "too long mime",
+			wantErr: true,
+			mime:    Mime(strings.Repeat("audio/mpeg", 500)),
 		},
 	}
 
