@@ -2,9 +2,15 @@
 
 package mime
 
-import "testing"
+import (
+	"testing"
+
+	"vortex.com/files"
+)
 
 func TestMime_Type(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		wantErr  bool
@@ -41,6 +47,8 @@ func TestMime_Type(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			tp, err := tt.mime.Type()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Type(%q): got error %v, want %v", tt.mime, err, tt.wantErr)
@@ -58,6 +66,8 @@ func TestMime_Type(t *testing.T) {
 }
 
 func TestMime_Subtype(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		wantErr bool
@@ -100,6 +110,8 @@ func TestMime_Subtype(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			s, err := tt.mime.Subtype()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Type(%q): got error %v, want %v", tt.mime, err, tt.wantErr)
@@ -117,6 +129,8 @@ func TestMime_Subtype(t *testing.T) {
 }
 
 func TestMime_Parts(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		wantErr  bool
@@ -166,6 +180,8 @@ func TestMime_Parts(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			fileType, ext, err := tt.mime.Parts()
 			if (err != nil) != tt.wantErr {
 				t.Errorf("fileExtension(%q): got error %v, want %v", tt.mime, err, tt.wantErr)
@@ -186,7 +202,94 @@ func TestMime_Parts(t *testing.T) {
 	}
 }
 
+func TestMime_FileType(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		wantErr bool
+		mime    Mime
+		want    files.Type
+	}{
+		{
+			name:    "empty mime",
+			wantErr: true,
+		},
+		{
+			name:    "invalid mime",
+			wantErr: true,
+			mime:    "audio/mpeg/invalid",
+		},
+		{
+			name:    "empty type (invalid mime)",
+			wantErr: true,
+			mime:    "/mpeg",
+		},
+		{
+			name:    "empty subtype (invalid mime)",
+			wantErr: true,
+			mime:    "audio/",
+		},
+		{
+			name:    "audio",
+			wantErr: false,
+			mime:    "audio/mpeg",
+			want:    files.Audio,
+		},
+		{
+			name:    "video",
+			wantErr: false,
+			mime:    "video/mp4",
+			want:    files.Video,
+		},
+		{
+			name:    "image",
+			wantErr: false,
+			mime:    "image/png",
+			want:    files.Image,
+		},
+		{
+			name:    "font",
+			wantErr: false,
+			mime:    "font/font",
+			want:    files.Font,
+		},
+		{
+			name:    "unknown type",
+			wantErr: false,
+			mime:    "application/zip7",
+			want:    files.Unknown,
+		},
+		{
+			name:    "video with optional data",
+			wantErr: false,
+			mime:    `video/mp4;data="test"`,
+			want:    files.Video,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got, err := tt.mime.FileType()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("FileType() = %v, want: %t", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+
+			if got != tt.want {
+				t.Errorf("want type: %s, got: %s", tt.want, got)
+			}
+		})
+	}
+}
+
 func TestMime_IsAudio(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		mime Mime
@@ -216,6 +319,8 @@ func TestMime_IsAudio(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ok := tt.mime.IsAudio()
 
 			if tt.want != ok {
@@ -226,6 +331,8 @@ func TestMime_IsAudio(t *testing.T) {
 }
 
 func TestMime_IsVideo(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		mime Mime
@@ -255,8 +362,9 @@ func TestMime_IsVideo(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ok := tt.mime.IsVideo()
+			t.Parallel()
 
+			ok := tt.mime.IsVideo()
 			if tt.want != ok {
 				t.Errorf("IsVideo(%q) = %t, want %t", tt.mime, ok, tt.want)
 			}
@@ -265,6 +373,8 @@ func TestMime_IsVideo(t *testing.T) {
 }
 
 func TestMime_IsImage(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name string
 		mime Mime
@@ -276,7 +386,7 @@ func TestMime_IsImage(t *testing.T) {
 			want: true,
 		},
 		{
-			name: "not video type",
+			name: "not image type",
 			mime: "application/mpeg",
 			want: false,
 		},
@@ -294,10 +404,183 @@ func TestMime_IsImage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			ok := tt.mime.IsImage()
 
 			if tt.want != ok {
 				t.Errorf("IsImage(%q) = %t, want %t", tt.mime, ok, tt.want)
+			}
+		})
+	}
+}
+
+func TestMime_IsApplication(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		mime Mime
+		want bool
+	}{
+		{
+			name: "valid",
+			mime: "application/zip7",
+			want: true,
+		},
+		{
+			name: "not application type",
+			mime: "video/mpeg",
+			want: false,
+		},
+		{
+			name: "empty type",
+			mime: "/mpeg",
+			want: false,
+		},
+		{
+			name: "invalid mime format",
+			mime: "video/mpeg/invalid",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ok := tt.mime.IsApplication()
+
+			if tt.want != ok {
+				t.Errorf("IsApplication(%q) = %t, want %t", tt.mime, ok, tt.want)
+			}
+		})
+	}
+}
+
+func TestMime_IsText(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		mime Mime
+		want bool
+	}{
+		{
+			name: "valid",
+			mime: "text/txt",
+			want: true,
+		},
+		{
+			name: "not text type",
+			mime: "application/mpeg",
+			want: false,
+		},
+		{
+			name: "empty type",
+			mime: "/mpeg",
+			want: false,
+		},
+		{
+			name: "invalid mime format",
+			mime: "text/mpeg/invalid",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ok := tt.mime.IsText()
+
+			if tt.want != ok {
+				t.Errorf("IsText(%q) = %t, want %t", tt.mime, ok, tt.want)
+			}
+		})
+	}
+}
+
+func TestMime_IsFont(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		mime Mime
+		want bool
+	}{
+		{
+			name: "valid",
+			mime: "font/font",
+			want: true,
+		},
+		{
+			name: "not font type",
+			mime: "application/mpeg",
+			want: false,
+		},
+		{
+			name: "empty type",
+			mime: "/mpeg",
+			want: false,
+		},
+		{
+			name: "invalid mime format",
+			mime: "font/mpeg/invalid",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ok := tt.mime.IsFont()
+
+			if tt.want != ok {
+				t.Errorf("IsFont(%q) = %t, want %t", tt.mime, ok, tt.want)
+			}
+		})
+	}
+}
+
+func TestMime_IsModel(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name string
+		mime Mime
+		want bool
+	}{
+		{
+			name: "valid",
+			mime: "model/cad",
+			want: true,
+		},
+		{
+			name: "not model type",
+			mime: "application/mpeg",
+			want: false,
+		},
+		{
+			name: "empty type",
+			mime: "/mpeg",
+			want: false,
+		},
+		{
+			name: "invalid mime format",
+			mime: "model/mpeg/invalid",
+			want: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			ok := tt.mime.IsModel()
+			if tt.want != ok {
+				t.Errorf("IsModel(%q) = %t, want %t", tt.mime, ok, tt.want)
 			}
 		})
 	}

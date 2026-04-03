@@ -118,8 +118,6 @@ func (m Mime) Parts() (tp string, sub Subtype, err error) {
 	s, _, _ = strings.Cut(s, ";")
 
 	return t, Subtype(s), nil
-	// // the use of specialized methods like Subtype.Name().
-	// return tp, Subtype(s), nil
 }
 
 // is checks if the primary media type of the MIME string matches the provided type string.
