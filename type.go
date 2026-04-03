@@ -7,6 +7,9 @@ import (
 	"fmt"
 )
 
+// TODO:
+// ~ Json unmarshal
+
 // ErrInvalidType indicates that the provided file classification is not recognized by the system.
 var ErrInvalidType = errors.New("unknown file type")
 

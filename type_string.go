@@ -10,11 +10,16 @@ func _() {
 	var x [1]struct{}
 	_ = x[Video-0]
 	_ = x[Audio-1]
+	_ = x[Image-2]
+	_ = x[Document-3]
+	_ = x[Archive-4]
+	_ = x[Font-5]
+	_ = x[Unknown-6]
 }
 
-const _Type_name = "videoaudio"
+const _Type_name = "videoaudioimagedocumentarchivefontunknown"
 
-var _Type_index = [...]uint8{0, 5, 10}
+var _Type_index = [...]uint8{0, 5, 10, 15, 23, 30, 34, 41}
 
 func (i Type) String() string {
 	idx := int(i) - 0
