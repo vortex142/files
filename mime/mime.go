@@ -26,12 +26,12 @@ const (
 // maxLen defines the upper bound for a MIME string to prevent resource exhaustion.
 const maxLen = 1024
 
-// fileTypes maps raw MIME type strings to internal strongly-typed file categories.
-var fileTypes = map[string]files.Type{
-	audioType: files.Audio,
-	videoType: files.Video,
-	imageType: files.Image,
-	fontType:  files.Font,
+// fileTypes maps primary MIME types to factory functions that determine the final [files.Type].
+var fileTypes = map[string]func(Mime) files.Type{
+	audioType: func(m Mime) files.Type { return files.Audio },
+	videoType: func(m Mime) files.Type { return files.Video },
+	imageType: func(m Mime) files.Type { return files.Image },
+	fontType:  func(m Mime) files.Type { return files.Font },
 }
 
 // Mime represents a full standard media type string (e.g., "audio/mpeg").
@@ -93,19 +93,19 @@ func (m Mime) Type() (string, error) {
 // It returns [files.Unknown] and an error if the MIME format is invalid,
 // or [files.Unknown] without an error if the type is valid but not supported by our presets.
 func (m Mime) FileType() (files.Type, error) {
-	mt, err := m.Type()
+	t, err := m.Type()
 	if err != nil {
 		// If the MIME string is structurally unsound, we cannot determine its category.
 		return files.Unknown, err
 	}
 
-	t, found := fileTypes[mt]
+	matcher, found := fileTypes[t]
 	if !found {
 		// The MIME is valid (e.g., "application/pdf"), but we don't have a processing category for it.
 		return files.Unknown, nil
 	}
 
-	return t, nil
+	return matcher(m), nil
 }
 
 // Parts decomposes a Mime string into its primary type and subtype components.

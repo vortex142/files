@@ -4,7 +4,8 @@ package mime
 
 import "errors"
 
-// Note: Написать для Go doc
+// MIME-related error definitions.
+// These errors are used during the validation and parsing of MIME type strings.
 var (
 	// ErrEmptyMime is returned when the input string is empty.
 	ErrEmptyMime = errors.New("mime is required")
