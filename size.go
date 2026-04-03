@@ -15,11 +15,6 @@ import (
 // TODO:
 // ~ remove regexp in parse
 
-var (
-	ErrNegativeSize = errors.New("size cannot be negative")             // ErrNegativeSize indicates that the provided file size value is below zero.
-	ErrInvalidUnit  = errors.New("invalid or unsupported storage unit") // ErrInvalidUnit indicates that the provided unit exceeds the maximum supported scale (Exabyte).
-)
-
 // parsePattern captures the numeric value and the unit suffix.
 // It is pre-compiled to mitigate the performance cost during repeated calls.
 var parsePattern = regexp.MustCompile(`^([0-9.]+)\s*([a-zA-Z]+)$`)

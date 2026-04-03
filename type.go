@@ -3,15 +3,11 @@
 package files
 
 import (
-	"errors"
 	"fmt"
 )
 
 // TODO:
 // ~ Json unmarshal
-
-// ErrInvalidType indicates that the provided file classification is not recognized by the system.
-var ErrInvalidType = errors.New("unknown file type")
 
 // Type represents a high-level classification of a file resource.
 // Using uint8 provides a compact representation, ideal for indexing and embedding in larger data structures.

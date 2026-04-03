@@ -3,7 +3,6 @@
 package files
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"unicode"
@@ -19,12 +18,6 @@ var forbiddenWindowsNames = map[string]struct{}{
 	"LPT1": {}, "LPT2": {}, "LPT3": {}, "LPT4": {}, "LPT5": {}, "LPT6": {}, "LPT7": {}, "LPT8": {}, "LPT9": {},
 }
 
-var (
-	ErrReservedName      = errors.New("name is reserved")       // ErrReservedName is returned when the input matches OS-protected strings (e.g., "CON", "NUL").
-	ErrEmptyName         = errors.New("name is required")       // ErrEmptyName is returned when the input string is empty before any processing.
-	ErrEmptyPreparedName = errors.New("prepared name is empty") // ErrEmptyPreparedName indicates that the sanitization process stripped all characters, resulting in an unusable identifier.
-)
-
 // MaxNameLen is set to 240 to ensure compatibility with most filesystems (limit 255).
 // We reserve 15 characters for extensions and temporary suffixes added during processing.
 const MaxNameLen = 240
@@ -34,7 +27,8 @@ const MaxNameLen = 240
 // eliminate the risk of additional heap allocations during string sanitization.
 const prepareBufferScale = 2
 
-type Name string // Name represents a technical filename derived from metadata or system defaults.
+// Name represents a technical filename derived from metadata or system defaults.
+type Name string
 
 // Validate performs a multi-layer security and compatibility check on the filename.
 // It ensures the name is not empty, adheres to filesystem length limits, and
