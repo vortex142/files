@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"vortex.com/files"
+	"github.com/vortex142/files"
 )
 
 func TestMime_Validate(t *testing.T) {

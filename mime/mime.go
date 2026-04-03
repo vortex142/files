@@ -6,7 +6,7 @@ import (
 	"errors"
 	"strings"
 
-	"vortex.com/files"
+	"github.com/vortex142/files"
 )
 
 // TODO:
