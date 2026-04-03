@@ -4,7 +4,6 @@ package mime
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"vortex.com/files"
@@ -34,6 +33,9 @@ var fileTypes = map[string]files.Type{
 
 // Mime represents a full standard media type string (e.g., "audio/mpeg").
 type Mime string
+
+// TODO:
+// ~ Проверять размер Mime
 
 // Validate ensures the Mime string adheres to the RFC standards (type/subtype).
 // It checks for empty values and correctly formatted delimiters, ignoring optional parameters.
@@ -68,7 +70,7 @@ func (m Mime) Validate() error {
 	if len(errs) == 0 {
 		return nil
 	}
-	return fmt.Errorf("failed to validate: %w", errors.Join(errs...))
+	return errors.Join(errs...)
 }
 
 // Subtype extracts the specific format identifier from the MIME.

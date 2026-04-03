@@ -8,6 +8,57 @@ import (
 	"vortex.com/files"
 )
 
+func TestMime_Validate(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		wantErr bool
+		mime    Mime
+	}{
+		{
+			name:    "valid mime",
+			wantErr: false,
+			mime:    "audio/mpeg",
+		},
+		{
+			name:    "valid mime with optional",
+			wantErr: false,
+			mime:    "video/mp4;test=banana",
+		},
+		{
+			name:    "invalid mime format",
+			wantErr: true,
+			mime:    "audio/mpeg/invalid",
+		},
+		{
+			name:    "empty mime",
+			wantErr: true,
+		},
+		{
+			name:    "empty type",
+			wantErr: true,
+			mime:    "/mpeg",
+		},
+		{
+			name:    "empty subtype",
+			wantErr: true,
+			mime:    "audio/",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			err := tt.mime.Validate()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Validate() = %v, want: %t", err, tt.wantErr)
+			}
+		})
+	}
+}
+
 func TestMime_Type(t *testing.T) {
 	t.Parallel()
 
