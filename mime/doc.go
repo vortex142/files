@@ -10,7 +10,7 @@
 //   - Strict validation: Checks for type/subtype conformance according to RFC standards.
 //   - Type classification: Matches MIME strings against the internal [files.Type] enumeration.
 //   - Deep subtype analysis: Identifies canonical formats (WAV, MPEG) regardless of vendor-specific prefixes.
-//   - Security: Built-in string length limit [maxLen] to prevent resource exhaustion attacks during parsing.
+//   - Security: Built-in string length limit 1024 to prevent resource exhaustion attacks during parsing.
 //
 // # Performance
 //
