@@ -1,4 +1,4 @@
-// Copyright © 2026 Ruslan Sadekov. All rights reserved.
+// Copyright © 2026 Ruslan Sadekov.
 
 package mime
 
@@ -43,12 +43,12 @@ func (m Mime) Validate() error {
 		return ErrEmptyMime
 	}
 
-	t, sub, found := strings.Cut(string(m), "/")
-
-	// If no slash is found, the format is fundamentally broken.
-	if !found {
+	// A valid MIME type must contain exactly one forward slash separator (type/subtype).
+	if count := strings.Count(string(m), "/"); count != 1 {
 		return ErrInvalidMime
 	}
+
+	t, sub, _ := strings.Cut(string(m), "/")
 
 	// Pre-allocate a slice for potential errors with a capacity of 2.
 	// This micro-optimization avoids extra memory allocations.

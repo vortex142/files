@@ -1,4 +1,4 @@
-// Copyright © 2026 Ruslan Sadekov. All rights reserved.
+// Copyright © 2026 Ruslan Sadekov.
 // Contributions are welcome! If you find a missing format, please open a PR.
 
 package mime

@@ -1,4 +1,4 @@
-// Copyright © 2026 Ruslan Sadekov. All rights reserved.
+// Copyright © 2026 Ruslan Sadekov.
 
 package files
 
