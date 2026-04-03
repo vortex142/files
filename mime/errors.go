@@ -11,6 +11,9 @@ var (
 	// ErrInvalidMime is returned when the string exists but doesn't follow the 'type/subtype' structure (e.g., missing the forward slash).
 	ErrInvalidMime = errors.New("mime type must be in the format 'type/subtype'")
 
+	// ErrTooLong is returned when the MIME string exceeds the system's safety limit.
+	ErrTooLong = errors.New("mime exceeds maximum allowed length")
+
 	// ErrEmptyType is returned when the output MIME type is empty.
 	ErrEmptyType = errors.New("mime type is empty")
 

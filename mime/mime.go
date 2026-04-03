@@ -23,6 +23,9 @@ const (
 	modelType       = "model"       // modelType represents 3D assets or CAD data.
 )
 
+// maxLen defines the upper bound for a MIME string to prevent resource exhaustion.
+const maxLen = 1024
+
 // fileTypes maps raw MIME type strings to internal strongly-typed file categories.
 var fileTypes = map[string]files.Type{
 	audioType: files.Audio,
@@ -43,6 +46,10 @@ type Mime string
 func (m Mime) Validate() error {
 	if m == "" {
 		return ErrEmptyMime
+	}
+
+	if len(m) > maxLen {
+		return ErrTooLong
 	}
 
 	// A valid MIME type must contain exactly one forward slash separator (type/subtype).
@@ -105,18 +112,16 @@ func (m Mime) FileType() (files.Type, error) {
 }
 
 // Parts decomposes a Mime string into its primary type and subtype components.
-// It enforces the RFC-standard "type/subtype" format, providing the foundation
-// for media categorization and format identification.
+// It enforces the RFC-standard "type/subtype" format.
+// It returns the primary type, the Subtype, or an error if validation fails.
 func (m Mime) Parts() (tp string, sub Subtype, err error) {
-	// ...
 	if err := m.Validate(); err != nil {
 		return "", "", err
 	}
 
-	// ...
 	t, s, _ := strings.Cut(string(m), "/")
 
-	// ...
+	// Strip any optional parameters (like "; charset=utf-8") to isolate the subtype.
 	s, _, _ = strings.Cut(s, ";")
 
 	return t, Subtype(s), nil
