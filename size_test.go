@@ -408,7 +408,7 @@ func TestSize_To(t *testing.T) {
 	tests := []struct {
 		name string
 		size Size
-		want Size
+		want float64
 		unit Unit
 	}{
 		{

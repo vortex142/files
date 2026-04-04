@@ -115,7 +115,7 @@ func (s *Size) UnmarshalJSON(data []byte) error {
 		}
 
 		// Normalize the numeric input to the base Byte unit to maintain internal consistency.
-		*s = Size(val).To(B)
+		*s = Size(val)
 		return nil
 	}
 
@@ -160,13 +160,13 @@ func (s *Size) Parse(str string) error {
 // To converts the current Size (assumed to be in bytes) into the specified target [Unit].
 // unit defines the scale (e.g., MB, GB) to which the value should be normalized.
 // It returns the scaled Size or 0 if the current value fails validation.
-func (s Size) To(unit Unit) Size {
+func (s Size) To(unit Unit) float64 {
 	// Ensure the size is physically valid (non-negative) before performing division.
 	if err := s.Validate(); err != nil {
 		return 0
 	}
 
-	return s / Size(unit.Bytes())
+	return float64(s / unit.Bytes())
 }
 
 // From creates a Size (in bytes) by scaling a raw value from the provided [Unit].
