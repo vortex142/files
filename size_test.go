@@ -320,7 +320,7 @@ func TestSize_From(t *testing.T) {
 	tests := []struct {
 		name string
 		want Size
-		val  Size
+		val  float64
 		unit Unit
 	}{
 		{

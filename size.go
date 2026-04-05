@@ -153,7 +153,7 @@ func (s *Size) Parse(str string) error {
 	}
 
 	// Normalizing to bytes provides a single source of truth for all subsequent arithmetic.
-	*s = From(Size(val), unit)
+	*s = From(val, unit)
 	return nil
 }
 
@@ -172,11 +172,7 @@ func (s Size) To(unit Unit) float64 {
 // From creates a Size (in bytes) by scaling a raw value from the provided [Unit].
 // val represents the quantity, and unit defines its magnitude (e.g., 5, GB).
 // It returns the total byte count or 0 if the input value is invalid.
-func From(val Size, unit Unit) Size {
-	// Validate the input value to prevent overflow or logic errors from negative numbers.
-	if err := val.Validate(); err != nil {
-		return 0
-	}
-
-	return val * unit.Bytes()
+func From(val float64, unit Unit) Size {
+	val = max(val, 0)
+	return Size(val) * unit.Bytes()
 }
