@@ -12,15 +12,19 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.22'
+
       - name: Install dependencies
         run: go mod download
-      - name: Run tests
-        run: go test -v -race ./...
-      - name: Coverage
-        uses: codecov/codecod-action@v4
-        with:
-          token: ${{ secrets.428e9bbe-1ec0-49ca-a82f-5ad993a7b01a }}
+
+      - name: Run tests and collect coverage
+        run: |
+          go test -v -race -coverprofile=coverage.out ./...
+          
+      - name: Display Coverage
+        run: |
+          go tool cover -func=coverage.out
