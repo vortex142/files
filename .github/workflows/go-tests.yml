@@ -25,6 +25,8 @@ jobs:
         run: |
           go test -v -race -coverprofile=coverage.out ./...
           
-      - name: Display Coverage
-        run: |
-          go tool cover -func=coverage.out
+      - name: Publish coverage
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage.out
