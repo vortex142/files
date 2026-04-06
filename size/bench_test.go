@@ -56,7 +56,7 @@ func BenchmarkSize_FromString(b *testing.B) {
 		},
 		{
 			name: "too long string",
-			str:  strings.Repeat("55", maxParseLen),
+			str:  strings.Repeat("55", MaxParseLen),
 		},
 		{
 			name: "num with space",
@@ -96,7 +96,7 @@ func regexpParseSize(str string) (Size, error) {
 		return 0, ErrEmptyParseStr
 	}
 
-	if len(str) > maxParseLen {
+	if len(str) > MaxParseLen {
 		return 0, ErrTooLongParseStr
 	}
 

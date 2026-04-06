@@ -15,8 +15,8 @@ var nameToUnit = map[string]Unit{
 	"B": B, "KB": Kb, "MB": Mb, "GB": Gb, "TB": Tb, "PB": Pb, "EB": Eb,
 }
 
-// maxParseLen defines the byte limit for input strings to mitigate potential DoS attacks via large payloads.
-const maxParseLen = 1024
+// MaxParseLen defines the byte limit for input strings to mitigate potential DoS attacks via large payloads.
+const MaxParseLen = 1024
 
 // Unit represents the byte magnitude. It follows the Clean Architecture principle
 // of maintaining clear, typed domain boundaries.
@@ -150,7 +150,7 @@ func FromString(str string) (Size, error) {
 	}
 
 	// Limit string length to prevent resource exhaustion during parsing.
-	if len(str) > maxParseLen {
+	if len(str) > MaxParseLen {
 		return 0, ErrTooLongParseStr
 	}
 
