@@ -103,7 +103,9 @@ func (s *Size) UnmarshalJSON(data []byte) error {
 	switch val := v.(type) {
 	case string:
 		// Parse human-readable strings like "10GB", "250KB", or "1.5TB" into the internal unit representation.
-		return s.Parse(val)
+		var err error
+		*s, err = FromString(val)
+		return err
 	case float64:
 		// Handle raw numeric values, treating them as basic bytes.
 		if val < 0 {
@@ -118,18 +120,38 @@ func (s *Size) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("invalid type for Size: %T", v)
 }
 
-// Parse converts a string representation of data amount into a Size value.
+// To converts the current Size (assumed to be in bytes) into the specified target [Unit].
+// unit defines the scale (e.g., MB, GB) to which the value should be normalized.
+// It returns the scaled Size or 0 if the current value fails validation.
+func (s Size) To(unit Unit) float64 {
+	// Ensure the size is physically valid (non-negative) before performing division.
+	if err := s.Validate(); err != nil {
+		return 0
+	}
+
+	return float64(s / unit.Bytes())
+}
+
+// New creates a Size (in bytes) by scaling a raw value from the provided [Unit].
+// val represents the quantity, and unit defines its magnitude (e.g., 5, GB).
+// It returns the total byte count or 0 if the input value is invalid.
+func New(val float64, unit Unit) Size {
+	val = max(val, 0)
+	return Size(val) * unit.Bytes()
+}
+
+// FromString parses a string representation of data into a new [Size].
 // str is a raw string containing a numeric value and a unit suffix.
-// it returns an error if the input format is invalid, numeric value is negative or unit is unrecognized.
-func (s *Size) Parse(str string) error {
+// it returns a [Size] value and an error if the parsing or validation fails.
+func FromString(str string) (Size, error) {
 	// Check if the input is empty to avoid unnecessary processing.
 	if str == "" {
-		return ErrEmptyParseStr
+		return 0, ErrEmptyParseStr
 	}
 
 	// Limit string length to prevent resource exhaustion during parsing.
 	if len(str) > maxParseLen {
-		return ErrTooLongParseStr
+		return 0, ErrTooLongParseStr
 	}
 
 	// Initialize indices to isolate numeric and unit parts of the input.
@@ -193,7 +215,7 @@ func (s *Size) Parse(str string) error {
 
 	// Ensure both a value and a unit were found to maintain data integrity.
 	if startNum == -1 || startLet == -1 {
-		return ErrInvalidParseStr
+		return 0, ErrInvalidParseStr
 	}
 
 	numStr := str[startNum : endNum+1]
@@ -221,12 +243,12 @@ func (s *Size) Parse(str string) error {
 
 	num, err := strconv.ParseFloat(numStr, 64)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Validate that the size is non-negative as physical storage cannot be less than zero.
 	if num < 0 {
-		return ErrNegativeSize
+		return 0, ErrNegativeSize
 	}
 
 	// Resolve the unit string against supported measurement units using case-insensitive lookup.
@@ -235,40 +257,9 @@ func (s *Size) Parse(str string) error {
 		// Retry with uppercase to support varied naming conventions (like mb or MB).
 		unit, found = nameToUnit[strings.ToUpper(unitStr)]
 		if !found {
-			return ErrInvalidUnit
+			return 0, ErrInvalidUnit
 		}
 	}
 
-	*s = New(num, unit)
-	return nil
-}
-
-// To converts the current Size (assumed to be in bytes) into the specified target [Unit].
-// unit defines the scale (e.g., MB, GB) to which the value should be normalized.
-// It returns the scaled Size or 0 if the current value fails validation.
-func (s Size) To(unit Unit) float64 {
-	// Ensure the size is physically valid (non-negative) before performing division.
-	if err := s.Validate(); err != nil {
-		return 0
-	}
-
-	return float64(s / unit.Bytes())
-}
-
-// New creates a Size (in bytes) by scaling a raw value from the provided [Unit].
-// val represents the quantity, and unit defines its magnitude (e.g., 5, GB).
-// It returns the total byte count or 0 if the input value is invalid.
-func New(val float64, unit Unit) Size {
-	val = max(val, 0)
-	return Size(val) * unit.Bytes()
-}
-
-// Parse provides a standalone entry point to convert a string into a [Size] without manually declaring a variable.
-// str is a raw string containing a numeric value and a unit suffix.
-// it returns a [Size] value and an error if the underlying parsing logic fails.
-func Parse(str string) (Size, error) {
-	s := Size(0)
-	err := s.Parse(str)
-
-	return s, err
+	return New(num, unit), nil
 }

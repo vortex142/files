@@ -18,12 +18,12 @@ func ExampleNew() {
 	// input: 10 MB | size: 10485760 B
 }
 
-func ExampleParse() {
+func ExampleFromString() {
 	// e.g. from configs
 	strs := []string{"100 gb", "GB 100", "15,6mb", "14.2   MB"}
 
 	for _, str := range strs {
-		s, err := Parse(str)
+		s, err := FromString(str)
 		if err != nil {
 			// handling the parsing error
 		}
@@ -48,23 +48,6 @@ func ExampleSize_To() {
 
 	// Output:
 	// input: 1 MB | size: 1048576 B | to: 1024 KB
-}
-
-func ExampleSize_Parse() {
-	str1 := "10 GB"
-	str2 := "1   kb"
-
-	s1 := Size(0)
-	s1.Parse(str1)
-
-	s2 := Size(0)
-	s2.Parse(str2)
-
-	fmt.Printf("input: %q | size: %0.0f\ninput: %q | size: %0.0f\n", str1, s1, str2, s2)
-
-	// Output:
-	// input: "10 GB" | size: 10737418240
-	// input: "1   kb" | size: 1024
 }
 
 func ExampleSize_String() {

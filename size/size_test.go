@@ -187,7 +187,7 @@ func TestSize_String(t *testing.T) {
 	}
 }
 
-func TestSize_Parse(t *testing.T) {
+func TestSize_FromString(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -328,8 +328,7 @@ func TestSize_Parse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			size := Size(0)
-			err := size.Parse(tt.parse)
+			s, err := FromString(tt.parse)
 
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse(%s) = %v; wantErr = %t", tt.parse, err, tt.wantErr)
@@ -338,14 +337,14 @@ func TestSize_Parse(t *testing.T) {
 				return
 			}
 
-			if size != tt.wantSize {
-				t.Errorf("Parse(%s) = %v; want = %v", tt.parse, size, tt.wantSize)
+			if s != tt.wantSize {
+				t.Errorf("Parse(%s) = %v; want = %v", tt.parse, s, tt.wantSize)
 			}
 		})
 	}
 }
 
-func TestSize_From(t *testing.T) {
+func TestSize_New(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {

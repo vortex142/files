@@ -13,7 +13,7 @@ import (
 
 var parsePattern = regexp.MustCompile(`^([0-9.]+)\s*([a-zA-Z]+)$`)
 
-func BenchmarkSize_Parse(b *testing.B) {
+func BenchmarkSize_FromString(b *testing.B) {
 	needRegexp := false
 
 	b.ResetTimer()
@@ -85,8 +85,7 @@ func BenchmarkSize_Parse(b *testing.B) {
 		b.Run(fmt.Sprintf("%s_optimize", bb.name), func(b *testing.B) {
 			b.ResetTimer()
 			for b.Loop() {
-				s := Size(0)
-				s.Parse(bb.str)
+				FromString(bb.str)
 			}
 		})
 	}
