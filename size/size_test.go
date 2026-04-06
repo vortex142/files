@@ -217,15 +217,45 @@ func TestSize_Parse(t *testing.T) {
 			parse:   "1.5 INVALID",
 		},
 		{
-			name:    "invalid parse string format",
+			name:    "invalid num string",
 			wantErr: true,
-			parse:   "1 tb invalid",
+			parse:   "15-14 Tb",
+		},
+		{
+			name:     "valid num with space",
+			wantErr:  false,
+			parse:    "15 14 Tb",
+			wantSize: From(15, Tb),
+		},
+		{
+			name:     "valid num with ','",
+			wantErr:  false,
+			parse:    "1,5 Tb",
+			wantSize: From(1.5, Tb),
+		},
+		{
+			name:     "string with has > 2 blocks",
+			wantErr:  false,
+			parse:    "1 tb invalid",
+			wantSize: From(1, Tb),
+		},
+		{
+			name:     "valid parse with Cyrillic",
+			wantErr:  false,
+			wantSize: 1,
+			parse:    "1Б B",
 		},
 		{
 			name:     "valid bytes",
 			wantErr:  false,
 			wantSize: 1,
 			parse:    "1 B",
+		},
+		{
+			name:     "valid inverse bytes",
+			wantErr:  false,
+			wantSize: 1,
+			parse:    "B 1",
 		},
 		{
 			name:     "valid bytes with more trims",
@@ -300,6 +330,7 @@ func TestSize_Parse(t *testing.T) {
 			t.Parallel()
 			size := Size(0)
 			err := size.Parse(tt.parse)
+
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Parse(%s) = %v; wantErr = %t", tt.parse, err, tt.wantErr)
 			}

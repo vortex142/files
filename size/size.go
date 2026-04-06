@@ -4,25 +4,19 @@ package size
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"math"
-	"regexp"
 	"strconv"
 	"strings"
 )
-
-// TODO:
-// ~ remove regexp in parse
-
-// parsePattern captures the numeric value and the unit suffix.
-// It is pre-compiled to mitigate the performance cost during repeated calls.
-var parsePattern = regexp.MustCompile(`^([0-9.]+)\s*([a-zA-Z]+)$`)
 
 // nameToUnit maps uppercase unit strings back to their [Unit] constants for fast lookup during parsing.
 var nameToUnit = map[string]Unit{
 	"B": B, "KB": Kb, "MB": Mb, "GB": Gb, "TB": Tb, "PB": Pb, "EB": Eb,
 }
+
+// ...
+const maxParseLen = 1024
 
 // Unit represents the byte magnitude. It follows the Clean Architecture principle
 // of maintaining clear, typed domain boundaries.
@@ -49,8 +43,7 @@ func (u Unit) Validate() error {
 	return nil
 }
 
-// Bytes returns the power-of-two multiplier.
-// Values are capped at 2^60 (Exabytes) to prevent uint64 overflow during bit-shifting.
+// ...
 func (u Unit) Bytes() Size {
 	if u > 6 {
 		u = 6
@@ -64,9 +57,7 @@ func (u Unit) Bytes() Size {
 // Size stores the file size in bytes as a float64, enabling precise fractional.
 type Size float64
 
-// String returns a human-readable representation of the Size.
-// It uses logarithmic calculation to determine the optimal unit magnitude
-// without inefficient iterative loops.
+// ...
 func (s Size) String() string {
 	if s == 0 {
 		return "0 B"
@@ -122,38 +113,128 @@ func (s *Size) UnmarshalJSON(data []byte) error {
 	return fmt.Errorf("invalid type for Size: %T", v)
 }
 
-// Parse converts a formatted string into a Size value.
-// Returns an error if the format or data within the string is invalid.
-// NOTE: This is a complex and potentially slow operation because it invokes
-// regex matching and string normalization. Avoid calling this within performance-critical
-// hot loops to maintain high backend performance.
+// Parse converts a string representation of data amount into a Size value.
+// str is a raw string containing a numeric value and a unit suffix.
+// it returns an error if the input format is invalid, numeric value is negative or unit is unrecognized.
 func (s *Size) Parse(str string) error {
+	// Check if the input is empty to avoid unnecessary processing.
 	if str == "" {
-		return errors.New("empty size string")
+		return ErrEmptyParseStr
 	}
 
-	// Normalization ensures compatibility with nameToUnit lookup regardless of user input style.
-	str = strings.ToUpper(strings.TrimSpace(str))
-
-	// The number of matches must be equal to 3, since the first element of the slice is a full string str.
-	match := parsePattern.FindStringSubmatch(str)
-	if len(match) != 3 {
-		return fmt.Errorf(`invalid size format: %s (expected e.g. "1.5 GB")`, str)
+	// Limit string length to prevent resource exhaustion during parsing.
+	if len(str) > maxParseLen {
+		return ErrTooLongParseStr
 	}
 
-	val, err := strconv.ParseFloat(match[1], 64)
+	// Initialize indices to isolate numeric and unit parts of the input.
+	startNum := -1
+	endNum := -1
+	blockNum := false
+
+	startLet := -1
+	endLet := -1
+	blockLet := false
+
+	// Flag to trigger character replacement if localized decimal separators are found.
+	needClear := false
+
+	for i := range str {
+		c := str[i]
+
+		// Stop scanning if both numeric and unit blocks are already identified.
+		if blockLet && blockNum {
+			break
+		}
+
+		// Limit unit length to two characters to optimize suffix matching.
+		if startLet != -1 && (endLet-startLet)+1 >= 2 {
+			break
+		}
+
+		// Identify numeric characters including '-' and decimal points.
+		if ((c >= '0' && c <= '9') || c == '.' || c == ',' || c == '-') && !blockNum {
+			// Mark for normalization if a comma is used as a decimal separator.
+			if c == ',' {
+				needClear = true
+			}
+
+			// Track the start and end of the continuous numeric block.
+			if startNum == -1 {
+				startNum = i
+			}
+
+			endNum = i
+			continue
+		}
+
+		// Mark the end of the first numeric sequence to ensure only one continuous block is parsed.
+		blockNum = startNum != -1
+
+		// Identify alphabetic characters for unit identification.
+		if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')) && !blockLet {
+			// Track the start and end of the continuous unit label block.
+			if startLet == -1 {
+				startLet = i
+			}
+
+			endLet = i
+			continue
+		}
+
+		// Mark the end of the first letter sequence to prevent parsing multiple disjoint unit suffixes.
+		blockLet = startLet != -1
+	}
+
+	// Ensure both a value and a unit were found to maintain data integrity.
+	if startNum == -1 || startLet == -1 {
+		return ErrInvalidParseStr
+	}
+
+	numStr := str[startNum : endNum+1]
+	unitStr := str[startLet : endLet+1]
+
+	// Replace commas with dots to ensure compatibility with standard float parsers.
+	if needClear {
+		var b strings.Builder
+		b.Grow(len(numStr))
+
+		for i := range numStr {
+			c := numStr[i]
+
+			// Normalize decimal separator for strconv.ParseFloat compatibility.
+			if c == ',' {
+				b.WriteByte('.')
+				continue
+			}
+
+			b.WriteByte(c)
+		}
+
+		numStr = b.String()
+	}
+
+	num, err := strconv.ParseFloat(numStr, 64)
 	if err != nil {
 		return err
 	}
 
-	unitStr := match[2]
-	unit, ok := nameToUnit[unitStr]
-	if !ok {
-		return fmt.Errorf("unknown unit: %s", unitStr)
+	// Validate that the size is non-negative as physical storage cannot be less than zero.
+	if num < 0 {
+		return ErrNegativeSize
 	}
 
-	// Normalizing to bytes provides a single source of truth for all subsequent arithmetic.
-	*s = From(val, unit)
+	// Resolve the unit string against supported measurement units using case-insensitive lookup.
+	unit, found := nameToUnit[unitStr]
+	if !found {
+		// Retry with uppercase to support varied naming conventions (like mb or MB).
+		unit, found = nameToUnit[strings.ToUpper(unitStr)]
+		if !found {
+			return ErrInvalidUnit
+		}
+	}
+
+	*s = From(num, unit)
 	return nil
 }
 
