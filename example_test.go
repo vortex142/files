@@ -8,14 +8,14 @@ import (
 
 func ExampleName_CutExtension() {
 	name := Name("video.test.mp4")
-	fmt.Printf("input string: %q\n", name)
 
-	name.CutExtension()
-	fmt.Printf("output string: %q\n", name)
+	withoutExt := name
+	ext := withoutExt.CutExtension()
+
+	fmt.Printf("input: %q | without ext: %q | ext: %q\n", name, withoutExt, ext)
 
 	// Output:
-	// input string: "video.test.mp4"
-	// output string: "video.test"
+	// input: "video.test.mp4" | without ext: "video.test" | ext: "mp4"
 }
 
 func ExampleName_Validate() {

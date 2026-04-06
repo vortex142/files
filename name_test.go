@@ -136,9 +136,10 @@ func TestName_Validate(t *testing.T) {
 
 func TestName_CutExtension(t *testing.T) {
 	tests := []struct {
-		name  string
-		input Name
-		want  Name
+		name          string
+		input         Name
+		want          Name
+		wantExtension Extension
 	}{
 		{
 			name:  "cut with zero dots",
@@ -146,22 +147,29 @@ func TestName_CutExtension(t *testing.T) {
 			want:  "BANANA",
 		},
 		{
-			name:  "cut with one dot",
-			input: "BANANA.mp3",
-			want:  "BANANA",
+			name:          "cut with one dot",
+			input:         "BANANA.mp3",
+			want:          "BANANA",
+			wantExtension: "mp3",
 		},
 		{
-			name:  "cut with two dots",
-			input: "BANANA.1.mp3",
-			want:  "BANANA.1",
+			name:          "cut with two dots",
+			input:         "BANANA.1.mp3",
+			want:          "BANANA.1",
+			wantExtension: "mp3",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tt.input.CutExtension()
+			ext := tt.input.CutExtension()
 			if tt.input != tt.want {
 				t.Errorf("CutExtension() = %s, want %s", tt.input, tt.want)
+				return
+			}
+
+			if tt.wantExtension != ext {
+				t.Errorf("want: %s, got: %s", tt.wantExtension, ext)
 			}
 		})
 	}

@@ -130,10 +130,10 @@ func (n *Name) Prepare() error {
 	return nil
 }
 
-// CutExtension removes the final file extension from the name.
-// It specifically targets the last dot in the string to handle multi-dot
-// filenames (e.g., "data.v1.json" becomes "data.v1") correctly.
-func (n *Name) CutExtension() {
+// CutExtension modifies the [Name] by removing its extension and returning it as an [Extension] type.
+// n is a pointer to the filename string that will be truncated in place.
+// it returns an [Extension] containing the characters after the last dot or an empty string if no dot exists.
+func (n *Name) CutExtension() Extension {
 	s := string(*n)
 
 	// We search for the last occurrence of a dot to avoid
@@ -142,7 +142,10 @@ func (n *Name) CutExtension() {
 		// Slice the string up to the last dot, effectively removing
 		// the extension while preserving the semantic filename.
 		*n = Name(s[:i])
+		return Extension(s[i+1:])
 	}
+
+	return ""
 }
 
 // isReservedWinName identifies legacy system filenames that are prohibited
