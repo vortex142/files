@@ -1,6 +1,6 @@
 // Copyright © 2026 Ruslan Sadekov.
 
-package files
+package size
 
 import (
 	"encoding/json"
