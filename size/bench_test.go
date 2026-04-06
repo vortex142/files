@@ -4,6 +4,7 @@ package size
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -120,5 +121,63 @@ func regexpParseSize(str string) (Size, error) {
 		return 0, fmt.Errorf("unknown unit: %s", unitStr)
 	}
 
-	return From(val, unit), nil
+	return New(val, unit), nil
+}
+
+func BenchmarkSize_String(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	benchs := []struct {
+		name string
+		s    Size
+	}{
+		{
+			name: "10 Mb",
+			s:    New(10, Mb),
+		},
+		{
+			name: "50 Gb",
+			s:    New(50, Gb),
+		},
+		{
+			name: "5123123.123 Eb",
+			s:    New(5123123.123, Eb),
+		},
+		{
+			name: "312222.132123123 Kb",
+			s:    New(312222.132123123, Kb),
+		},
+	}
+
+	var str string
+	for _, bb := range benchs {
+		b.Run(bb.name, func(b *testing.B) {
+			b.ResetTimer()
+			str = bb.s.String()
+		})
+	}
+
+	b.Log(str)
+}
+
+func BenchmarkUnit_Bytes(b *testing.B) {
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	b.Run("unit method", func(b *testing.B) {
+		b.ResetTimer()
+
+		for b.Loop() {
+			Eb.Bytes()
+		}
+	})
+
+	b.Run("math pow", func(b *testing.B) {
+		b.ResetTimer()
+
+		for b.Loop() {
+			math.Pow(2, 60)
+		}
+	})
 }

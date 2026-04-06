@@ -7,21 +7,41 @@ import (
 	"fmt"
 )
 
-func ExampleFrom() {
+func ExampleNew() {
 	val := float64(10) // e.g. from config
 	unit := Mb
 
-	s := From(val, unit)
+	s := New(val, unit)
 	fmt.Printf("input: %0.0f %s | size: %0.0f B\n", val, unit, s)
 
 	// Output:
 	// input: 10 MB | size: 10485760 B
 }
 
+func ExampleParse() {
+	// e.g. from configs
+	strs := []string{"100 gb", "GB 100", "15,6mb", "14.2   MB"}
+
+	for _, str := range strs {
+		s, err := Parse(str)
+		if err != nil {
+			// handling the parsing error
+		}
+
+		fmt.Printf("input: %q | size: %0.0f\n", str, s)
+	}
+
+	// Output:
+	// input: "100 gb" | size: 107374182400
+	// input: "GB 100" | size: 107374182400
+	// input: "15,6mb" | size: 16357786
+	// input: "14.2   MB" | size: 14889779
+}
+
 func ExampleSize_To() {
 	val := float64(1) // e.g. from config
 	u := Mb
-	s := From(val, u)
+	s := New(val, u)
 	to := s.To(Kb)
 
 	fmt.Printf("input: %0.0f %s | size: %0.0f B | to: %0.0f %s", val, u, s, to, Kb)
@@ -48,8 +68,8 @@ func ExampleSize_Parse() {
 }
 
 func ExampleSize_String() {
-	s1 := From(1, Kb)
-	s2 := From(15, Mb)
+	s1 := New(1, Kb)
+	s2 := New(15, Mb)
 
 	fmt.Printf("size: %0.0f | string: %s\nsize: %0.0f | string: %s\n", s1, s1, s2, s2)
 

@@ -15,7 +15,7 @@ var nameToUnit = map[string]Unit{
 	"B": B, "KB": Kb, "MB": Mb, "GB": Gb, "TB": Tb, "PB": Pb, "EB": Eb,
 }
 
-// ...
+// maxParseLen defines the byte limit for input strings to mitigate potential DoS attacks via large payloads.
 const maxParseLen = 1024
 
 // Unit represents the byte magnitude. It follows the Clean Architecture principle
@@ -43,8 +43,11 @@ func (u Unit) Validate() error {
 	return nil
 }
 
-// ...
+// Bytes calculates the exact number of bytes represented by a [Unit] scale.
+// it uses the [Unit] rank as an exponent for base-1024 calculations.
+// it returns a [Size] representing the total byte count for the given unit.
 func (u Unit) Bytes() Size {
+	// Enforce an upper bound at Exabyte level to ensure the resulting Size fits within a uint64.
 	if u > 6 {
 		u = 6
 	}
@@ -57,22 +60,24 @@ func (u Unit) Bytes() Size {
 // Size stores the file size in bytes as a float64, enabling precise fractional.
 type Size float64
 
-// ...
+// String converts the [Size] value into a human-readable text representation with two decimal precision.
+// it automatically selects the most appropriate [Unit] based on the byte magnitude.
+// it returns a formatted string such as "1.50 GB" or "0 B".
 func (s Size) String() string {
+	// Handle zero explicitly to avoid logarithmic calculation errors and provide a clean default.
 	if s == 0 {
 		return "0 B"
 	}
 
-	// ...
+	// Determine the magnitude of the value to select the correct unit scale.
 	val := float64(s)
 	e := math.Floor(math.Log(val) / math.Log(1024))
 
-	// ...
+	// Caps the scale at Exabyte to prevent overflow or unsupported unit mapping.
 	if e > 6 {
 		e = 6
 	}
 
-	// ...
 	unit := Unit(e)
 	return fmt.Sprintf("%.2f %s", s.To(unit), unit.String())
 }
@@ -148,7 +153,7 @@ func (s *Size) Parse(str string) error {
 		}
 
 		// Limit unit length to two characters to optimize suffix matching.
-		if startLet != -1 && (endLet-startLet)+1 >= 2 {
+		if (startLet != -1 && (endLet-startLet)+1 >= 2) && blockNum {
 			break
 		}
 
@@ -234,7 +239,7 @@ func (s *Size) Parse(str string) error {
 		}
 	}
 
-	*s = From(num, unit)
+	*s = New(num, unit)
 	return nil
 }
 
@@ -250,10 +255,20 @@ func (s Size) To(unit Unit) float64 {
 	return float64(s / unit.Bytes())
 }
 
-// From creates a Size (in bytes) by scaling a raw value from the provided [Unit].
+// New creates a Size (in bytes) by scaling a raw value from the provided [Unit].
 // val represents the quantity, and unit defines its magnitude (e.g., 5, GB).
 // It returns the total byte count or 0 if the input value is invalid.
-func From(val float64, unit Unit) Size {
+func New(val float64, unit Unit) Size {
 	val = max(val, 0)
 	return Size(val) * unit.Bytes()
+}
+
+// Parse provides a standalone entry point to convert a string into a [Size] without manually declaring a variable.
+// str is a raw string containing a numeric value and a unit suffix.
+// it returns a [Size] value and an error if the underlying parsing logic fails.
+func Parse(str string) (Size, error) {
+	s := Size(0)
+	err := s.Parse(str)
+
+	return s, err
 }

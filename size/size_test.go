@@ -146,32 +146,32 @@ func TestSize_String(t *testing.T) {
 		},
 		{
 			name: "1 megabyte",
-			size: From(1, Mb),
+			size: New(1, Mb),
 			want: "1.00 MB",
 		},
 		{
 			name: "1 gb",
-			size: From(1, Gb),
+			size: New(1, Gb),
 			want: "1.00 GB",
 		},
 		{
 			name: "1 tb",
-			size: From(1, Tb),
+			size: New(1, Tb),
 			want: "1.00 TB",
 		},
 		{
 			name: "1 pb",
-			size: From(1, Pb),
+			size: New(1, Pb),
 			want: "1.00 PB",
 		},
 		{
 			name: "1 eb",
-			size: From(1, Eb),
+			size: New(1, Eb),
 			want: "1.00 EB",
 		},
 		{
 			name: "more 1 eb",
-			size: From(1, Eb+1),
+			size: New(1, Eb+1),
 			want: "1.00 EB",
 		},
 	}
@@ -225,19 +225,19 @@ func TestSize_Parse(t *testing.T) {
 			name:     "valid num with space",
 			wantErr:  false,
 			parse:    "15 14 Tb",
-			wantSize: From(15, Tb),
+			wantSize: New(15, Tb),
 		},
 		{
 			name:     "valid num with ','",
 			wantErr:  false,
 			parse:    "1,5 Tb",
-			wantSize: From(1.5, Tb),
+			wantSize: New(1.5, Tb),
 		},
 		{
 			name:     "string with has > 2 blocks",
 			wantErr:  false,
 			parse:    "1 tb invalid",
-			wantSize: From(1, Tb),
+			wantSize: New(1, Tb),
 		},
 		{
 			name:     "valid parse with Cyrillic",
@@ -252,10 +252,10 @@ func TestSize_Parse(t *testing.T) {
 			parse:    "1 B",
 		},
 		{
-			name:     "valid inverse bytes",
+			name:     "valid inverse",
 			wantErr:  false,
-			wantSize: 1,
-			parse:    "B 1",
+			wantSize: 1024,
+			parse:    "Kb 1",
 		},
 		{
 			name:     "valid bytes with more trims",
@@ -284,43 +284,43 @@ func TestSize_Parse(t *testing.T) {
 		{
 			name:     "valid kb",
 			wantErr:  false,
-			wantSize: From(1, Kb),
+			wantSize: New(1, Kb),
 			parse:    "1 KB",
 		},
 		{
 			name:     "valid fractional kb",
 			wantErr:  false,
-			wantSize: From(1.77, Kb),
+			wantSize: New(1.77, Kb),
 			parse:    "1.77 KB",
 		},
 		{
 			name:     "valid mb",
 			wantErr:  false,
-			wantSize: From(1, Mb),
+			wantSize: New(1, Mb),
 			parse:    "1 MB",
 		},
 		{
 			name:     "valid gb",
 			wantErr:  false,
-			wantSize: From(1, Gb),
+			wantSize: New(1, Gb),
 			parse:    "1 GB",
 		},
 		{
 			name:     "valid tb",
 			wantErr:  false,
-			wantSize: From(1, Tb),
+			wantSize: New(1, Tb),
 			parse:    "1 TB",
 		},
 		{
 			name:     "valid pb",
 			wantErr:  false,
-			wantSize: From(1, Pb),
+			wantSize: New(1, Pb),
 			parse:    "1 PB",
 		},
 		{
 			name:     "valid eb",
 			wantErr:  false,
-			wantSize: From(1, Eb),
+			wantSize: New(1, Eb),
 			parse:    "1 EB",
 		},
 	}
@@ -425,7 +425,7 @@ func TestSize_From(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			size := From(tt.val, tt.unit)
+			size := New(tt.val, tt.unit)
 			if size != tt.want {
 				t.Errorf("From(%v, %s) = %v; want %v", tt.val, tt.unit, size, tt.want)
 			}
@@ -578,13 +578,13 @@ func TestSize_UnmarshalJson(t *testing.T) {
 			name:    "valid string size (1mb)",
 			wantErr: false,
 			input:   "1 MB",
-			want:    From(1, Mb),
+			want:    New(1, Mb),
 		},
 		{
 			name:    "valid string size (1.5gb)",
 			wantErr: false,
 			input:   "1.5 GB",
-			want:    From(1.5, Gb),
+			want:    New(1.5, Gb),
 		},
 		{
 			name:    "empty string",
