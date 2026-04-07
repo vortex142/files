@@ -277,5 +277,5 @@ if s.IsWav() {
 ## Ссылки
 
 [Go Doc](https://pkg.go.dev/github.com/vortex142/files)  
-[Roadmap](ROADMAP.md)  
-[Changelog](CHANGELOG.md)  
+[Roadmap](../ROADMAP.md)  
+[Changelog](../CHANGELOG.md)  
