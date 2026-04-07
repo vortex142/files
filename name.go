@@ -72,6 +72,11 @@ func (n Name) Validate() error {
 // or incompatible input into a safe format. Unlike Validate, this method
 // proactively "fixes" the name to maintain a smooth user experience.
 func (n *Name) Prepare() error {
+	// Quick check to avoid unnecessary work.
+	if err := n.Validate(); err == nil {
+		return nil
+	}
+
 	v := *n
 
 	// Initial fallback: if the name is missing, we immediately assign the
