@@ -1,6 +1,8 @@
 # files 
 [![go tests](https://github.com/vortex142/files/actions/workflows/go-tests.yml/badge.svg)](https://github.com/vortex142/files/actions/workflows/go-tests.yml) [![codecov](https://codecov.io/github/vortex142/files/graph/badge.svg?token=29V742D8P2)](https://codecov.io/github/vortex142/files) [![Go Report Card](https://goreportcard.com/badge/github.com/vortex142/files)](https://goreportcard.com/report/github.com/vortex142/files) [![Doc](https://img.shields.io/badge/godoc-blue.svg)](https://pkg.go.dev/github.com/vortex142/files) ![Go](https://img.shields.io/badge/go-1.24-blue.svg)
 
+[English](../README.md)
+
 **Files** — библиотека для работы с метаданными файлов без прямого взаимодействия с файловой системой (I/O-agnostic). Пакет заменяет небезопасные манипуляции с «сырыми» строками на строго типизированную доменную модель, обеспечивая встроенную санацию имен, унифицированное представление файловых типов и инструментов для работы с размерами данных.
 
 Сабпакет `mime` расширяет возможности основного пакета, предоставляя инструментарий для работы с MIME-строками в рамках общей доменной концепции. Интеграция с типами библиотеки позволяет классифицировать контент напрямую, заменяя избыточные линейные проверки (вроде `IsAudio` или `IsVideo`) на эффективное сопоставление с категориями контента.
@@ -274,4 +276,6 @@ if s.IsWav() {
 
 ## Ссылки
 
-{Здесь типо будет ссылка на GO DOC, README.lang, ROADMAP, CHANGELOG}
+[Go Doc](https://pkg.go.dev/github.com/vortex142/files)  
+[Roadmap](ROADMAP.md)  
+[Changelog](CHANGELOG.md)  
