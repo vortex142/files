@@ -102,7 +102,7 @@ func (n *Name) Prepare() error {
 		// Line breaks are neutralized to prevent formatting issues in
 		// log files and unexpected behavior in the Telegram message display.
 		if r == '\n' || r == '\r' {
-			b.WriteRune('_')
+			b.WriteByte('_')
 			count++
 			continue
 		}

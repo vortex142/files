@@ -3,18 +3,8 @@
 package files
 
 import (
-	"regexp"
 	"strings"
 	"testing"
-)
-
-var errResult error
-
-var oldPattern = regexp.MustCompile(`^[ \p{L}\p{N}()._\-]+$`)
-
-var (
-	newlineRegex   = regexp.MustCompile(`[\n\r]`)
-	forbiddenRegex = regexp.MustCompile(`[^a-zA-Zа-яА-Я0-9. ()_\-]`)
 )
 
 func TestAllowed(t *testing.T) {
@@ -208,7 +198,7 @@ func TestName_Prepare(t *testing.T) {
 		{
 			name:    "all forbidden chars",
 			wantErr: true,
-			input:   "!!!@@@###",
+			input:   Name(strings.Repeat("#", MaxNameLen)),
 		},
 		{
 			name:    "mixed content with brackets",
@@ -275,147 +265,4 @@ func TestReservedWinNames(t *testing.T) {
 			}
 		})
 	}
-}
-
-func BenchmarkName_Validate(b *testing.B) {
-	benchmarks := []struct {
-		name string
-		n    Name
-	}{
-		{
-			name: "short name",
-			n:    "sht",
-		},
-		{
-			name: "short win reserved name",
-			n:    "con",
-		},
-		{
-			name: "empty name",
-		},
-		{
-			name: "long name",
-			n:    Name(strings.Repeat("g", MaxNameLen)),
-		},
-		{
-			name: "short name with invalid chars",
-			n:    "sht:💋\n",
-		},
-		{
-			name: "long name with invalid chars",
-			n:    Name(strings.Repeat("1💋", MaxNameLen/2-1)),
-		},
-	}
-
-	for _, bb := range benchmarks {
-		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
-			b.ResetTimer()
-
-			for b.Loop() {
-				errResult = bb.n.Validate()
-			}
-		})
-	}
-}
-
-func BenchmarkValidate_Regexp(b *testing.B) {
-	benchmarks := []struct {
-		name string
-		n    Name
-	}{
-		{
-			name: "short name",
-			n:    "sht",
-		},
-		{
-			name: "short win reserved name",
-			n:    "con",
-		},
-		{
-			name: "empty name",
-		},
-		{
-			name: "long name",
-			n:    Name(strings.Repeat("g", MaxNameLen)),
-		},
-		{
-			name: "short name with invalid chars",
-			n:    "sht:💋\n",
-		},
-		{
-			name: "long name with invalid chars",
-			n:    Name(strings.Repeat("1💋", MaxNameLen/2-1)),
-		},
-	}
-
-	for _, bb := range benchmarks {
-		b.Run(bb.name, func(b *testing.B) {
-			b.ReportAllocs()
-			b.ResetTimer()
-
-			for b.Loop() {
-				benchmarkRegexp(string(bb.n))
-			}
-		})
-	}
-}
-
-func BenchmarkValidate_Builder(b *testing.B) {
-	input := Name("BANANA_SUPER_FRUIT-KAIF(APPLE).MP4")
-	for b.Loop() {
-		input.Validate()
-	}
-}
-
-func BenchmarkPrepare_Regexp(b *testing.B) {
-	input := "Cool\nVideo! @🚀 Очень длинное название видео для проверки лимитов. Настолько длинное что оно даже не должно поместиться полность в экранное пространство моего IDE (VS CODE): И Я ДОБИЛСЯ ЭТОГО"
-	for b.Loop() {
-		prepareRegexp(input, MaxNameLen)
-	}
-}
-
-func BenchmarkPrepare_Builder(b *testing.B) {
-	input := Name("Cool\nVideo! @🚀 Очень длинное название видео для проверки лимитов. Настолько длинное что оно даже не должно поместиться полность в экранное пространство моего IDE (VS CODE): И Я ДОБИЛСЯ ЭТОГО")
-	for b.Loop() {
-		input.Prepare()
-	}
-}
-
-func benchmarkRegexp(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	if isReservedWinName(Name(s)) {
-		return false
-	}
-
-	return oldPattern.MatchString(s)
-}
-
-func prepareRegexp(s string, maxLen int) string {
-	if s == "" {
-		return string("default name")
-	}
-
-	runes := []rune(s)
-	if len(runes) > maxLen {
-		runes = runes[:maxLen]
-	}
-	s = string(runes)
-
-	s = newlineRegex.ReplaceAllString(s, "_")
-
-	s = forbiddenRegex.ReplaceAllString(s, "")
-
-	if len(s) == 0 {
-		return string("default name")
-	}
-
-	if isReservedWinName(Name(s)) {
-		return "_" + s
-	}
-
-	return s
 }

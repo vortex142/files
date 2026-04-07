@@ -152,8 +152,9 @@ func BenchmarkSize_String(b *testing.B) {
 	var str string
 	for _, bb := range benchs {
 		b.Run(bb.name, func(b *testing.B) {
-			b.ResetTimer()
-			str = bb.s.String()
+			for b.Loop() {
+				str = bb.s.String()
+			}
 		})
 	}
 
@@ -165,16 +166,12 @@ func BenchmarkUnit_Bytes(b *testing.B) {
 	b.ResetTimer()
 
 	b.Run("unit method", func(b *testing.B) {
-		b.ResetTimer()
-
 		for b.Loop() {
 			Eb.Bytes()
 		}
 	})
 
 	b.Run("math pow", func(b *testing.B) {
-		b.ResetTimer()
-
 		for b.Loop() {
 			math.Pow(2, 60)
 		}
