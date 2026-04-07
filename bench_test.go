@@ -124,7 +124,7 @@ func BenchmarkName_Prepare(b *testing.B) {
 				for b.Loop() {
 					temp := initial
 
-					temp.Prepare()
+					temp.Sanitize()
 				}
 			})
 		}

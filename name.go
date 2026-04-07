@@ -68,10 +68,10 @@ func (n Name) Validate() error {
 	return nil
 }
 
-// Prepare sanitizes the filename in-place, transforming potentially dangerous
+// Sanitize sanitizes the filename in-place, transforming potentially dangerous
 // or incompatible input into a safe format. Unlike Validate, this method
 // proactively "fixes" the name to maintain a smooth user experience.
-func (n *Name) Prepare() error {
+func (n *Name) Sanitize() error {
 	// Quick check to avoid unnecessary work.
 	if err := n.Validate(); err == nil {
 		return nil

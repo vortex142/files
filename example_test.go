@@ -33,21 +33,21 @@ func ExampleName_Validate() {
 	// input: "con" | is valid: false
 }
 
-func ExampleName_Prepare() {
+func ExampleName_Sanitize() {
 	validName := Name("video.mp4")
 	invalidName := Name("../../etc/password")
 	reservedName := Name("con")
 
 	oldValidName := validName
-	validName.Prepare()
+	validName.Sanitize()
 	fmt.Printf("old: %q | prepared: %q\n", oldValidName, validName)
 
 	oldInvalidName := invalidName
-	invalidName.Prepare()
+	invalidName.Sanitize()
 	fmt.Printf("old: %q | prepared: %q\n", oldInvalidName, invalidName)
 
 	oldReservedName := reservedName
-	reservedName.Prepare()
+	reservedName.Sanitize()
 	fmt.Printf("old: %q | prepared: %q\n", oldReservedName, reservedName)
 
 	// Output:
