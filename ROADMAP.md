@@ -17,6 +17,7 @@
 - Add the File and MediaFile interfaces.
 - Expand the extension type (files.Extension).
 - Expand the number of supported file types.
+- leave the check of Windows reserved names only for Windows assemblies.
 
 ## `magic`
 
