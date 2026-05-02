@@ -177,24 +177,28 @@ func TestType_UnmarshalJSON(t *testing.T) {
 			t:    Font,
 		},
 		{
-			name: "unknown string",
-			json: "unknown",
-			t:    Unknown,
+			name:    "unknown string",
+			wantErr: true,
+			json:    "unknown",
+			t:       Unknown,
 		},
 		{
-			name: "invalid string",
-			json: "invalid",
-			t:    Unknown,
+			name:    "invalid string",
+			wantErr: true,
+			json:    "invalid",
+			t:       Unknown,
 		},
 		{
-			name: "too long string",
-			json: strings.Repeat("1", maxTypeLen+1),
-			t:    Unknown,
+			name:    "too long string",
+			wantErr: true,
+			json:    strings.Repeat("1", maxTypeLen+1),
+			t:       Unknown,
 		},
 		{
-			name: "too short string",
-			json: strings.Repeat("1", minTypeLen-1),
-			t:    Unknown,
+			name:    "too short string",
+			wantErr: true,
+			json:    strings.Repeat("1", minTypeLen-1),
+			t:       Unknown,
 		},
 		{
 			name: "video number",
@@ -232,9 +236,10 @@ func TestType_UnmarshalJSON(t *testing.T) {
 			t:    Unknown,
 		},
 		{
-			name: "invalid number",
-			json: float64(100),
-			t:    Unknown,
+			name:    "invalid number",
+			wantErr: true,
+			json:    float64(100),
+			t:       Unknown,
 		},
 		{
 			name: "zero number",
@@ -245,11 +250,13 @@ func TestType_UnmarshalJSON(t *testing.T) {
 			name:    "invalid type (bool)",
 			wantErr: true,
 			json:    true,
+			t:       Unknown,
 		},
 		{
 			name:    "negative number",
 			wantErr: true,
 			json:    float64(-100),
+			t:       Unknown,
 		},
 	}
 
@@ -268,8 +275,103 @@ func TestType_UnmarshalJSON(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Unmarshal() = %v, want: %t", err, tt.wantErr)
 			}
-			if tt.wantErr {
-				return
+
+			if got != tt.t {
+				t.Errorf("want: %v, got: %v", tt.t, got)
+			}
+		})
+	}
+}
+
+func TestType_UnmarshalText(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		wantErr bool
+		text    string
+		t       Type
+	}{
+		{
+			name: "video string",
+			text: "video",
+			t:    Video,
+		},
+		{
+			name: "Video string",
+			text: "Video",
+			t:    Video,
+		},
+		{
+			name: "VIDEO string",
+			text: "VIDEO",
+			t:    Video,
+		},
+		{
+			name: "AuDiO string",
+			text: "AuDiO",
+			t:    Audio,
+		},
+		{
+			name: "audio string",
+			text: "audio",
+			t:    Audio,
+		},
+		{
+			name: "image string",
+			text: "image",
+			t:    Image,
+		},
+		{
+			name: "document string",
+			text: "document",
+			t:    Document,
+		},
+		{
+			name: "archive string",
+			text: "archive",
+			t:    Archive,
+		},
+		{
+			name: "font string",
+			text: "font",
+			t:    Font,
+		},
+		{
+			name:    "unknown string",
+			wantErr: true,
+			text:    "unknown",
+			t:       Unknown,
+		},
+		{
+			name:    "invalid string",
+			wantErr: true,
+			text:    "invalid",
+			t:       Unknown,
+		},
+		{
+			name:    "too long string",
+			wantErr: true,
+			text:    strings.Repeat("1", maxTypeLen+1),
+			t:       Unknown,
+		},
+		{
+			name:    "too short string",
+			wantErr: true,
+			text:    strings.Repeat("1", minTypeLen-1),
+			t:       Unknown,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			got := Type(0)
+			err := got.UnmarshalText([]byte(tt.text))
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("UnmarshalText() = %v, want: %t", err, tt.wantErr)
 			}
 
 			if got != tt.t {

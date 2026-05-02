@@ -4,7 +4,6 @@ package files
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -58,11 +57,13 @@ func (t Type) Validate() error {
 
 // UnmarshalJSON implements the [json.Unmarshaler] interface to support polymorphic decoding of types from both strings and numbers.
 // data represents the raw JSON encoded bytes containing either a category name or a numeric identifier.
-// It returns an error if the input format is unsupported or if a numeric value is negative.
+// It returns an error if the input format is unsupported, [ErrInvalidType] if a numeric value is negative or if the parser fails to identify the type.
 //
-// String values are resolved through [TypeFromString] while numeric values are cast directly and validated.
-// Any numeric input that fails validation is safely defaulted to the [Unknown] state.
+// String values are resolved through [encoding.UnmarshalText] while numeric values are cast directly and validated against internal constants.
+// If an error occurs during unmarshaling the receiver will always be set to the [Unknown] state.
 func (t *Type) UnmarshalJSON(data []byte) error {
+	*t = Unknown
+
 	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
 		return err
@@ -70,23 +71,38 @@ func (t *Type) UnmarshalJSON(data []byte) error {
 
 	switch val := v.(type) {
 	case string:
-		*t = TypeFromString(val)
-		return nil
+		return t.UnmarshalText([]byte(val))
 	case float64:
 		if val < 0 {
-			return errors.New("type value cannot be negative")
+			return fmt.Errorf("%w: type value cannot be negative", ErrInvalidType)
+		}
+
+		if Type(val).Validate() != nil {
+			return ErrInvalidType
 		}
 
 		*t = Type(val)
-
-		if t.Validate() != nil {
-			*t = Unknown
-		}
-
 		return nil
 	}
 
-	return fmt.Errorf("invalid type for Type: %T", v)
+	return fmt.Errorf("%w: unsupported type: %T", ErrInvalidType, v)
+}
+
+// UnmarshalText implements the [encoding.TextUnmarshaler] interface to convert a string-based file type into its internal representation.
+// text represents the raw byte slice containing the type name to be parsed.
+// It returns [ErrInvalidType] if the input string is recognized as [Unknown] or fails validation after parsing.
+//
+// If an error occurs during unmarshaling the receiver will always be set to the [Unknown] state.
+func (t *Type) UnmarshalText(text []byte) error {
+	*t = Unknown
+
+	val := TypeFromString(string(text))
+	if val.Validate() != nil || val == Unknown {
+		return ErrInvalidType
+	}
+
+	*t = val
+	return nil
 }
 
 // TypeFromString converts a string identifier into a [Type].
