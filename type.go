@@ -104,6 +104,21 @@ func TypeFromString(s string) Type {
 
 	// Performs a case-insensitive fallback to ensure compatibility with varied external naming conventions.
 	if !found {
+		// allLower identifies strings that are already normalized to skip redundant map lookups.
+		allLower := true
+		for i := 0; i < len(s); i++ {
+			if s[i] >= 'A' && s[i] <= 'Z' {
+				allLower = false
+				break
+			}
+		}
+
+		// Since all characters are in lowercase and the initial lookup failed,
+		// any subsequent search after strings.ToLower will also fail to find a match.
+		if allLower {
+			return Unknown
+		}
+
 		s = strings.ToLower(s)
 		t, found = typeNames[s]
 	}
