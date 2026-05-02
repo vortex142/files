@@ -3,12 +3,11 @@
 package files
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 )
-
-// TODO:
-// ~ Json unmarshal
 
 // typeNames maps string identifiers to their corresponding [Type] constants for unified file classification.
 var typeNames = map[string]Type{
@@ -55,6 +54,39 @@ func (t Type) Validate() error {
 		return fmt.Errorf("Validate: %w (received: %d)", ErrInvalidType, t)
 	}
 	return nil
+}
+
+// UnmarshalJSON implements the [json.Unmarshaler] interface to support polymorphic decoding of types from both strings and numbers.
+// data represents the raw JSON encoded bytes containing either a category name or a numeric identifier.
+// It returns an error if the input format is unsupported or if a numeric value is negative.
+//
+// String values are resolved through [TypeFromString] while numeric values are cast directly and validated.
+// Any numeric input that fails validation is safely defaulted to the [Unknown] state.
+func (t *Type) UnmarshalJSON(data []byte) error {
+	var v any
+	if err := json.Unmarshal(data, &v); err != nil {
+		return err
+	}
+
+	switch val := v.(type) {
+	case string:
+		*t = TypeFromString(val)
+		return nil
+	case float64:
+		if val < 0 {
+			return errors.New("type value cannot be negative")
+		}
+
+		*t = Type(val)
+
+		if t.Validate() != nil {
+			*t = Unknown
+		}
+
+		return nil
+	}
+
+	return fmt.Errorf("invalid type for Type: %T", v)
 }
 
 // TypeFromString converts a string identifier into a [Type].

@@ -3,6 +3,7 @@
 package files
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 )
@@ -118,5 +119,162 @@ func TestType_MinMaxConsts(t *testing.T) {
 
 	if actualMinLen != minTypeLen {
 		t.Errorf("actual min len = %d, current %d", actualMinLen, minTypeLen)
+	}
+}
+
+func TestType_UnmarshalJSON(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		wantErr bool
+		json    any
+		t       Type
+	}{
+		{
+			name: "video string",
+			json: "video",
+			t:    Video,
+		},
+		{
+			name: "Video string",
+			json: "Video",
+			t:    Video,
+		},
+		{
+			name: "VIDEO string",
+			json: "VIDEO",
+			t:    Video,
+		},
+		{
+			name: "AuDiO string",
+			json: "AuDiO",
+			t:    Audio,
+		},
+		{
+			name: "audio string",
+			json: "audio",
+			t:    Audio,
+		},
+		{
+			name: "image string",
+			json: "image",
+			t:    Image,
+		},
+		{
+			name: "document string",
+			json: "document",
+			t:    Document,
+		},
+		{
+			name: "archive string",
+			json: "archive",
+			t:    Archive,
+		},
+		{
+			name: "font string",
+			json: "font",
+			t:    Font,
+		},
+		{
+			name: "unknown string",
+			json: "unknown",
+			t:    Unknown,
+		},
+		{
+			name: "invalid string",
+			json: "invalid",
+			t:    Unknown,
+		},
+		{
+			name: "too long string",
+			json: strings.Repeat("1", maxTypeLen+1),
+			t:    Unknown,
+		},
+		{
+			name: "too short string",
+			json: strings.Repeat("1", minTypeLen-1),
+			t:    Unknown,
+		},
+		{
+			name: "video number",
+			json: float64(Video),
+			t:    Video,
+		},
+		{
+			name: "audio number",
+			json: float64(Audio),
+			t:    Audio,
+		},
+		{
+			name: "image number",
+			json: float64(Image),
+			t:    Image,
+		},
+		{
+			name: "document number",
+			json: float64(Document),
+			t:    Document,
+		},
+		{
+			name: "archive number",
+			json: float64(Archive),
+			t:    Archive,
+		},
+		{
+			name: "font number",
+			json: float64(Font),
+			t:    Font,
+		},
+		{
+			name: "unknown number",
+			json: float64(Unknown),
+			t:    Unknown,
+		},
+		{
+			name: "invalid number",
+			json: float64(100),
+			t:    Unknown,
+		},
+		{
+			name: "zero number",
+			json: float64(0),
+			t:    Video,
+		},
+		{
+			name:    "invalid type (bool)",
+			wantErr: true,
+			json:    true,
+		},
+		{
+			name:    "negative number",
+			wantErr: true,
+			json:    float64(-100),
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
+			data, err := json.Marshal(tt.json)
+			if err != nil {
+				t.Fatalf("failed to marshal input: %v", err)
+			}
+
+			got := Type(0)
+			err = json.Unmarshal(data, &got)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Unmarshal() = %v, want: %t", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+
+			if got != tt.t {
+				t.Errorf("want: %v, got: %v", tt.t, got)
+			}
+		})
 	}
 }

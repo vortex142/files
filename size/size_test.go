@@ -626,7 +626,7 @@ func TestSize_UnmarshalJson(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//t.Parallel()
+			t.Parallel()
 
 			data, err := json.Marshal(tt.input)
 			if err != nil {
