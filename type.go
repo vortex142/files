@@ -50,7 +50,7 @@ const (
 // It returns nil if valid, otherwise [ErrInvalidType] for unrecognized values.
 func (t Type) Validate() error {
 	if t > Unknown {
-		return fmt.Errorf("Validate: %w (received: %d)", ErrInvalidType, t)
+		return fmt.Errorf("%w: (received: %d)", ErrInvalidType, t)
 	}
 	return nil
 }
@@ -103,6 +103,20 @@ func (t *Type) UnmarshalText(text []byte) error {
 
 	*t = val
 	return nil
+}
+
+// MarshalText implements the [encoding.TextMarshaler] interface to provide a valid string representation of the file type.
+// It returns the byte representation of the type or [ErrInvalidType] if the type is [Unknown] or fails validation.
+func (t Type) MarshalText() ([]byte, error) {
+	if t == Unknown {
+		return nil, ErrInvalidType
+	}
+
+	if err := t.Validate(); err != nil {
+		return nil, err
+	}
+
+	return []byte(t.String()), nil
 }
 
 // TypeFromString converts a string identifier into a [Type].

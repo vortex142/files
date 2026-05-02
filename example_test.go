@@ -3,6 +3,7 @@
 package files
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
@@ -76,4 +77,70 @@ func ExampleTypeFromString() {
 	// input: "AUDIO" | type: audio
 	// input: "INVALID" | type: unknown
 	// input: "FoNt" | type: font
+}
+
+func ExampleType_UnmarshalJSON() {
+	var raw struct {
+		T1 Type `json:"type_1"`
+		T2 Type `json:"type_2"`
+	}
+
+	// e.g. from config
+	cfg := `{
+		"type_1": "video",
+		"type_2": 1
+	}` // 0 is audio
+
+	json.Unmarshal([]byte(cfg), &raw)
+
+	fmt.Printf("input: %q | type: %s\ninput: %d | type: %s\n", "video", raw.T1, 1, raw.T2)
+
+	// Output:
+	// input: "video" | type: video
+	// input: 1 | type: audio
+}
+
+func ExampleType_UnmarshalText() {
+	var raw struct {
+		M map[Type]string `json:"map"`
+	}
+
+	// e.g. from config
+	cfg := `{
+		"map": {
+			"video": "I am video ;)",
+			"audio": "I am audio :)"
+		}
+	}`
+
+	json.Unmarshal([]byte(cfg), &raw)
+
+	fmt.Printf("input: %q | type: %s | value: %q\n", "video", "video", raw.M[Video])
+	fmt.Printf("input: %q | type: %s | value: %q\n", "audio", "audio", raw.M[Audio])
+
+	// Output:
+	// input: "video" | type: video | value: "I am video ;)"
+	// input: "audio" | type: audio | value: "I am audio :)"
+}
+
+func ExampleType_MarshalText() {
+	ts := []Type{Video, Audio, Image, Document, Unknown, 67}
+
+	for _, t := range ts {
+		text, err := t.MarshalText()
+		if err != nil {
+			fmt.Printf("type: %s | error: %v\n", t.String(), err)
+			continue
+		}
+
+		fmt.Printf("type: %s | text: %q\n", t, text)
+	}
+
+	// Output:
+	// type: video | text: "video"
+	// type: audio | text: "audio"
+	// type: image | text: "image"
+	// type: document | text: "document"
+	// type: unknown | error: unknown file type
+	// type: Type(67) | error: unknown file type: (received: 67)
 }

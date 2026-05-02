@@ -380,3 +380,42 @@ func TestType_UnmarshalText(t *testing.T) {
 		})
 	}
 }
+
+func TestType_MarshalText(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		wantErr bool
+		t       Type
+		want    string
+	}{
+		{name: "video", t: Video, want: "video"},
+		{name: "audio", t: Audio, want: "audio"},
+		{name: "image", t: Image, want: "image"},
+		{name: "document", t: Document, want: "document"},
+		{name: "archive", t: Archive, want: "archive"},
+		{name: "font", t: Font, want: "font"},
+		{name: "unknown", wantErr: true, t: Unknown},
+		{name: "invalid", wantErr: true, t: Type(100)},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			//t.Parallel()
+
+			got, err := tt.t.MarshalText()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MarshalText() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				return
+			}
+
+			if string(got) != tt.want {
+				t.Errorf("MarshalText() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
