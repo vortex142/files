@@ -94,7 +94,7 @@ func BenchmarkName_Validate(b *testing.B) {
 	})
 }
 
-func BenchmarkName_Prepare(b *testing.B) {
+func BenchmarkName_Sanitize(b *testing.B) {
 	b.ReportAllocs()
 
 	needRegexp := true
@@ -109,7 +109,7 @@ func BenchmarkName_Prepare(b *testing.B) {
 					for b.Loop() {
 						temp := initial
 
-						prepareRegexp(string(temp), MaxNameLen)
+						sanitizeRegexp(string(temp), MaxNameLen)
 					}
 				})
 			}
@@ -143,7 +143,7 @@ func benchmarkRegexp(s string) bool {
 	return oldPattern.MatchString(s)
 }
 
-func prepareRegexp(s string, maxLen int) string {
+func sanitizeRegexp(s string, maxLen int) string {
 	if s == "" {
 		return string("default name")
 	}

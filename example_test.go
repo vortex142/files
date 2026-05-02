@@ -55,3 +55,25 @@ func ExampleName_Sanitize() {
 	// old: "../../etc/password" | prepared: "....etcpassword"
 	// old: "con" | prepared: "_con"
 }
+
+func ExampleTypeFromString() {
+	inputs := []string{
+		"video",
+		"Video",
+		"AUDIO",
+		"INVALID",
+		"FoNt",
+	}
+
+	for _, input := range inputs {
+		t := TypeFromString(input)
+		fmt.Printf("input: %q | type: %s\n", input, t)
+	}
+
+	// Output:
+	// input: "video" | type: video
+	// input: "Video" | type: video
+	// input: "AUDIO" | type: audio
+	// input: "INVALID" | type: unknown
+	// input: "FoNt" | type: font
+}
